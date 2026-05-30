@@ -40,16 +40,15 @@ const navItems: { name: string; href: string; icon: Icon }[] = [
 
 export function colorClasses(color: string) {
   const colors: Record<string, { bg: string; text: string; ring: string; glow: string }> = {
-    amber: { bg: 'bg-amber-400/15', text: 'text-amber-700 dark:text-amber-300', ring: 'ring-amber-300/20', glow: 'shadow-amber-500/10' },
-    blue: { bg: 'bg-blue-500/15', text: 'text-blue-700 dark:text-blue-300', ring: 'ring-blue-300/20', glow: 'shadow-blue-500/10' },
-    cyan: { bg: 'bg-cyan-400/15', text: 'text-cyan-700 dark:text-cyan-300', ring: 'ring-cyan-300/20', glow: 'shadow-cyan-500/10' },
-    emerald: { bg: 'bg-emerald-400/15', text: 'text-emerald-700 dark:text-emerald-300', ring: 'ring-emerald-300/20', glow: 'shadow-emerald-500/10' },
-    orange: { bg: 'bg-orange-400/15', text: 'text-orange-700 dark:text-orange-300', ring: 'ring-orange-300/20', glow: 'shadow-orange-500/10' },
-    pink: { bg: 'bg-pink-500/15', text: 'text-pink-700 dark:text-pink-300', ring: 'ring-pink-300/20', glow: 'shadow-pink-500/10' },
-    rose: { bg: 'bg-rose-500/15', text: 'text-rose-700 dark:text-rose-300', ring: 'ring-rose-300/20', glow: 'shadow-rose-500/10' },
+    olive: {
+      bg: 'bg-olive-950/5 dark:bg-white/10',
+      text: 'text-olive-800 dark:text-olive-200',
+      ring: 'ring-olive-950/10 dark:ring-white/10',
+      glow: 'shadow-olive-950/10',
+    },
   }
 
-  return colors[color] ?? colors.blue
+  return colors[color] ?? colors.olive
 }
 
 export function Card({ children, className = '', as = 'section' }: { children: ReactNode; className?: string; as?: 'div' | 'section' }) {
@@ -89,11 +88,11 @@ function Sidebar() {
   return (
     <aside className="hidden w-64 shrink-0 overflow-hidden border-r border-olive-950/10 bg-white/55 px-4 py-6 dark:border-white/10 dark:bg-black/20 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col">
       <Link href="/" className="flex shrink-0 items-center gap-3 px-2">
-        <div className="grid size-9 place-items-center rounded-lg bg-sky-600 text-white shadow-lg shadow-sky-500/15">
+        <div className="grid size-9 place-items-center rounded-lg bg-olive-950 text-white shadow-lg shadow-olive-950/10 dark:bg-olive-300 dark:text-olive-950">
           <SparklesIcon className="size-5" />
         </div>
         <div className="text-xl font-semibold tracking-normal text-olive-950 dark:text-white">
-          SideHustle<span className="text-sky-600 dark:text-sky-300">OS</span>
+          SideHustle<span className="text-olive-500 dark:text-olive-300">OS</span>
         </div>
       </Link>
 
@@ -108,7 +107,7 @@ function Sidebar() {
               href={item.href}
               className={`flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition ${
                 active
-                  ? 'bg-sky-600 text-white shadow-lg shadow-sky-500/15'
+                  ? 'bg-olive-950 text-white shadow-lg shadow-olive-950/10 dark:bg-olive-300 dark:text-olive-950'
                   : 'text-olive-700 hover:bg-olive-950/[0.06] hover:text-olive-950 dark:text-olive-300 dark:hover:bg-white/[0.06] dark:hover:text-white'
               }`}
             >
@@ -120,13 +119,13 @@ function Sidebar() {
       </nav>
 
       <div className="mt-6 shrink-0 space-y-4">
-        <div className="rounded-lg border border-sky-300/50 bg-sky-50/90 p-4 shadow-sm shadow-sky-900/5 ring-1 ring-white/70 dark:border-sky-300/20 dark:bg-sky-500/10 dark:shadow-none dark:ring-white/5">
-          <RocketIcon className="size-5 text-sky-700 dark:text-sky-200" />
-          <p className="mt-3 font-medium text-sky-950 dark:text-sky-100">Upgrade to Pro</p>
+        <div className="rounded-lg border border-olive-950/10 bg-olive-950/5 p-4 shadow-sm shadow-olive-950/5 ring-1 ring-white/70 dark:border-white/10 dark:bg-white/5 dark:shadow-none dark:ring-white/5">
+          <RocketIcon className="size-5 text-olive-800 dark:text-olive-200" />
+          <p className="mt-3 font-medium text-olive-950 dark:text-white">Upgrade to Pro</p>
           <p className="mt-2 text-sm leading-6 text-olive-700 dark:text-olive-300">
             Unlock advanced AI agents, analytics, and outreach volume.
           </p>
-          <button className="mt-4 flex h-9 w-full items-center justify-center gap-2 rounded-md bg-sky-700 px-3 text-sm font-medium text-white ring-1 ring-sky-200/25 transition hover:bg-sky-800 dark:bg-sky-600 dark:hover:bg-sky-500">
+          <button className="mt-4 flex h-9 w-full items-center justify-center gap-2 rounded-md bg-olive-950 px-3 text-sm font-medium text-white ring-1 ring-olive-950/10 transition hover:bg-olive-800 dark:bg-olive-300 dark:text-olive-950 dark:hover:bg-olive-200">
             Upgrade Now <ArrowNarrowRightIcon className="size-3" />
           </button>
         </div>
@@ -148,11 +147,11 @@ function Header({ title, subtitle }: { title: string; subtitle: string }) {
     <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div>
         <Link href="/" className="flex items-center gap-3 lg:hidden">
-          <div className="grid size-9 place-items-center rounded-lg bg-sky-600 text-white">
+          <div className="grid size-9 place-items-center rounded-lg bg-olive-950 text-white dark:bg-olive-300 dark:text-olive-950">
             <SparklesIcon className="size-5" />
           </div>
           <p className="text-xl font-semibold text-olive-950 dark:text-white">
-            SideHustle<span className="text-sky-600 dark:text-sky-300">OS</span>
+            SideHustle<span className="text-olive-500 dark:text-olive-300">OS</span>
           </p>
         </Link>
         <h1 className="mt-5 text-2xl font-semibold tracking-normal text-olive-950 dark:text-white lg:mt-0">{title}</h1>
@@ -200,8 +199,8 @@ function ThemeToggle() {
 
 export function DashboardShell({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   return (
-    <main className="min-h-dvh bg-olive-100 text-olive-950 dark:bg-[#07111d] dark:text-white">
-      <div className="absolute inset-0 -z-0 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.10),transparent_32rem),radial-gradient(circle_at_top_right,rgba(20,184,166,0.10),transparent_30rem)] dark:bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.12),transparent_32rem),radial-gradient(circle_at_top_right,rgba(20,184,166,0.10),transparent_30rem)]" />
+    <main className="min-h-dvh bg-olive-100 text-olive-950 dark:bg-olive-950 dark:text-white">
+      <div className="absolute inset-0 -z-0 bg-[radial-gradient(circle_at_top_left,rgba(15,23,10,0.06),transparent_32rem)] dark:bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.06),transparent_32rem)]" />
       <div className="relative z-10 flex min-h-dvh">
         <Sidebar />
         <div className="min-w-0 flex-1">

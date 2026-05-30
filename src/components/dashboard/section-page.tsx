@@ -29,7 +29,7 @@ const sections = {
     title: 'Hustles',
     subtitle: 'Launch, monitor, and scale each micro-business from one operating view.',
     icon: BriefcaseIcon,
-    color: 'blue',
+    color: 'olive',
     metrics: [
       ['Active hustles', '4', '+1 this week'],
       ['Monthly revenue', '$8,430', '+24.5%'],
@@ -47,7 +47,7 @@ const sections = {
     title: 'AI Agents',
     subtitle: 'Control the workers that find prospects, write copy, follow up, invoice, and report.',
     icon: SparklesIcon,
-    color: 'blue',
+    color: 'olive',
     metrics: [
       ['Active agents', '8', '23 runs today'],
       ['Human approvals', '5', '2 high-stakes replies'],
@@ -65,7 +65,7 @@ const sections = {
     title: 'Tasks',
     subtitle: 'Prioritize approvals and execution work that still needs human direction.',
     icon: ClipboardIcon,
-    color: 'amber',
+    color: 'olive',
     metrics: [
       ['Due today', '7', '3 AI-assisted'],
       ['Blocked', '2', 'Need client input'],
@@ -83,7 +83,7 @@ const sections = {
     title: 'Clients',
     subtitle: 'Track relationships, replies, proposals, active work, and revenue per account.',
     icon: User2Icon,
-    color: 'emerald',
+    color: 'olive',
     metrics: [
       ['Active clients', '12', '+3 this month'],
       ['Hot prospects', '21', '9 replied'],
@@ -101,7 +101,7 @@ const sections = {
     title: 'Earnings',
     subtitle: 'See revenue, invoices, payout readiness, and late-payment automation.',
     icon: BanknotesIcon,
-    color: 'emerald',
+    color: 'olive',
     metrics: [
       ['Collected', '$8,430', '+24.5%'],
       ['Outstanding', '$2,100', '3 invoices'],
@@ -119,7 +119,7 @@ const sections = {
     title: 'Analytics',
     subtitle: 'Understand which offers, emails, agents, and channels are creating income.',
     icon: ChartLineIcon,
-    color: 'cyan',
+    color: 'olive',
     metrics: [
       ['Email conversion', '14.8%', '+3.1%'],
       ['Reply rate', '31%', '+7.4%'],
@@ -137,7 +137,7 @@ const sections = {
     title: 'Opportunities',
     subtitle: 'Qualified projects, upsells, client matches, and market gaps selected by AI.',
     icon: TargetIcon,
-    color: 'pink',
+    color: 'olive',
     metrics: [
       ['Matched today', '17', '5 high confidence'],
       ['Est. pipeline', '$12.4K', '+$3.2K'],
@@ -155,7 +155,7 @@ const sections = {
     title: 'Integrations',
     subtitle: 'Connect the systems agents use to deploy sites, send emails, invoice, and log revenue.',
     icon: PaperclipIcon,
-    color: 'orange',
+    color: 'olive',
     metrics: [
       ['Connected', '6', 'All healthy'],
       ['Events today', '148', 'Synced'],
@@ -173,7 +173,7 @@ const sections = {
     title: 'Settings',
     subtitle: 'Configure business defaults, approval rules, agent limits, and billing controls.',
     icon: CogIcon,
-    color: 'blue',
+    color: 'olive',
     metrics: [
       ['Approval mode', 'Balanced', '2 rules active'],
       ['Daily email cap', '50', '23 used'],
@@ -234,7 +234,7 @@ export function DashboardSectionPage({ section }: { section: SectionKey }) {
                 <p className="text-sm text-olive-700 dark:text-olive-300">Priority operating view</p>
               </div>
             </div>
-            <button className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-sky-600 px-3 text-sm font-medium text-white">
+            <button className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-olive-950 dark:bg-olive-300 px-3 text-sm font-medium text-white">
               Create action <ArrowNarrowRightIcon className="size-3" />
             </button>
           </div>
@@ -260,12 +260,12 @@ export function DashboardSectionPage({ section }: { section: SectionKey }) {
           <Card className="p-4 sm:p-5">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-olive-950 dark:text-white">AI next action</h2>
-              <SparklesIcon className="size-5 text-sky-400" />
+              <SparklesIcon className="size-5 text-olive-800 dark:text-olive-200" />
             </div>
             <p className="mt-3 text-sm leading-6 text-olive-700 dark:text-olive-300">
               SideHustleOS has enough signal to draft the next outreach, proposal, invoice, or optimization for this section.
             </p>
-            <button className="mt-5 h-9 rounded-md border border-sky-400/40 bg-sky-50 px-3 text-sm font-medium text-sky-800 ring-1 ring-sky-200 dark:bg-sky-500/15 dark:text-sky-100 dark:ring-sky-300/20">
+            <button className="mt-5 h-9 rounded-md border border-olive-950/10 dark:border-white/10 bg-white px-3 text-sm font-medium text-olive-800 ring-1 ring-olive-950/10 dark:bg-white/10 dark:text-white dark:ring-white/10">
               Review recommendation
             </button>
           </Card>
@@ -292,7 +292,7 @@ export function DashboardSectionPage({ section }: { section: SectionKey }) {
             <div className="mt-4 space-y-3">
               {['AI identified next move', 'Human approval gate ready', 'Revenue impact tracked'].map((item) => (
                 <div key={item} className="flex items-center gap-3 text-sm text-olive-800 dark:text-olive-200">
-                  <span className="grid size-5 place-items-center rounded-full bg-emerald-400/15 text-emerald-300">
+                  <span className="grid size-5 place-items-center rounded-full bg-olive-950/5 dark:bg-white/10 text-olive-700 dark:text-olive-300">
                     <CheckmarkIcon className="size-3" />
                   </span>
                   {item}
