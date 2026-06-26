@@ -31,17 +31,30 @@ export type DashboardUser = {
   plan: string
 }
 
-const navItems: { name: string; href: string; icon: Icon }[] = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Hustles', href: '/hustles', icon: BriefcaseIcon },
-  { name: 'AI Agents', href: '/ai-agents', icon: SparklesIcon },
-  { name: 'Tasks', href: '/tasks', icon: ClipboardIcon },
-  { name: 'Clients', href: '/clients', icon: User2Icon },
-  { name: 'Earnings', href: '/earnings', icon: BanknotesIcon },
-  { name: 'Analytics', href: '/analytics', icon: ChartLineIcon },
-  { name: 'Opportunities', href: '/opportunities', icon: TargetIcon },
-  { name: 'Integrations', href: '/integrations', icon: PaperclipIcon },
-  { name: 'Settings', href: '/settings', icon: CogIcon },
+type NavKey = 'dashboard' | 'hustles' | 'agents' | 'tasks' | 'clients' | 'earnings' | 'analytics' | 'opportunities' | 'integrations' | 'settings'
+
+export type DashboardMenuData = {
+  dateRange: string
+  navBadges: Partial<Record<NavKey, string>>
+  planPanel: {
+    title: string
+    description: string
+    actionLabel: string
+    href: string
+  }
+}
+
+const navItems: { key: NavKey; name: string; href: string; icon: Icon }[] = [
+  { key: 'dashboard', name: 'Dashboard', href: '/', icon: HomeIcon },
+  { key: 'hustles', name: 'Hustles', href: '/hustles', icon: BriefcaseIcon },
+  { key: 'agents', name: 'AI Agents', href: '/ai-agents', icon: SparklesIcon },
+  { key: 'tasks', name: 'Tasks', href: '/tasks', icon: ClipboardIcon },
+  { key: 'clients', name: 'Clients', href: '/clients', icon: User2Icon },
+  { key: 'earnings', name: 'Earnings', href: '/earnings', icon: BanknotesIcon },
+  { key: 'analytics', name: 'Analytics', href: '/analytics', icon: ChartLineIcon },
+  { key: 'opportunities', name: 'Opportunities', href: '/opportunities', icon: TargetIcon },
+  { key: 'integrations', name: 'Integrations', href: '/integrations', icon: PaperclipIcon },
+  { key: 'settings', name: 'Settings', href: '/settings', icon: CogIcon },
 ]
 
 export function colorClasses(color: string) {
@@ -156,7 +169,7 @@ function ProfileMenu({ user, placement = 'header' }: { user: DashboardUser; plac
   )
 }
 
-function Sidebar({ user }: { user: DashboardUser }) {
+function Sidebar({ user, menuData }: { user: DashboardUser; menuData?: DashboardMenuData }) {
   const pathname = usePathname()
 
   return (
@@ -186,7 +199,16 @@ function Sidebar({ user }: { user: DashboardUser }) {
               }`}
             >
               <Icon className="size-4" />
-              <span>{item.name}</span>
+              <span className="min-w-0 flex-1 truncate">{item.name}</span>
+              {menuData?.navBadges[item.key] ? (
+                <span
+                  className={`max-w-20 truncate rounded-full px-2 py-0.5 text-xs ${
+                    active ? 'bg-white/15 text-white dark:bg-olive-950/10 dark:text-olive-950' : 'bg-olive-950/5 text-olive-700 dark:bg-white/10 dark:text-olive-200'
+                  }`}
+                >
+                  {menuData.navBadges[item.key]}
+                </span>
+              ) : null}
             </Link>
           )
         })}
@@ -195,13 +217,16 @@ function Sidebar({ user }: { user: DashboardUser }) {
       <div className="mt-6 shrink-0 space-y-4">
         <div className="rounded-lg border border-olive-950/10 bg-olive-950/5 p-4 shadow-sm shadow-olive-950/5 ring-1 ring-white/70 dark:border-white/10 dark:bg-white/5 dark:shadow-none dark:ring-white/5">
           <RocketIcon className="size-5 text-olive-800 dark:text-olive-200" />
-          <p className="mt-3 font-medium text-olive-950 dark:text-white">Upgrade to Pro</p>
+          <p className="mt-3 font-medium text-olive-950 dark:text-white">{menuData?.planPanel.title ?? formatPlan(user.plan)}</p>
           <p className="mt-2 text-sm leading-6 text-olive-700 dark:text-olive-300">
-            Unlock advanced AI agents, analytics, and outreach volume.
+            {menuData?.planPanel.description ?? 'Manage your account plan, limits, and billing settings.'}
           </p>
-          <button className="mt-4 flex h-9 w-full items-center justify-center gap-2 rounded-md bg-olive-950 px-3 text-sm font-medium text-white ring-1 ring-olive-950/10 transition hover:bg-olive-800 dark:bg-olive-300 dark:text-olive-950 dark:hover:bg-olive-200">
-            Upgrade Now <ArrowNarrowRightIcon className="size-3" />
-          </button>
+          <Link
+            href={menuData?.planPanel.href ?? '/settings'}
+            className="mt-4 flex h-9 w-full items-center justify-center gap-2 rounded-md bg-olive-950 px-3 text-sm font-medium text-white ring-1 ring-olive-950/10 transition hover:bg-olive-800 dark:bg-olive-300 dark:text-olive-950 dark:hover:bg-olive-200"
+          >
+            {menuData?.planPanel.actionLabel ?? 'Open Settings'} <ArrowNarrowRightIcon className="size-3" />
+          </Link>
         </div>
 
         <ProfileMenu user={user} placement="sidebar" />
@@ -210,7 +235,7 @@ function Sidebar({ user }: { user: DashboardUser }) {
   )
 }
 
-function Header({ title, subtitle, user }: { title: string; subtitle: string; user: DashboardUser }) {
+function Header({ title, subtitle, user, menuData }: { title: string; subtitle: string; user: DashboardUser; menuData?: DashboardMenuData }) {
   return (
     <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div>
@@ -229,7 +254,7 @@ function Header({ title, subtitle, user }: { title: string; subtitle: string; us
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:flex-col lg:items-end">
         <div className="flex h-10 w-full items-center gap-3 rounded-lg border border-olive-950/10 bg-white/70 px-3 text-sm text-olive-600 dark:border-white/10 dark:bg-black/20 dark:text-olive-300 sm:w-80">
           <MagnifyingGlassIcon className="size-4" />
-          <span className="min-w-0 flex-1 truncate">Search anything...</span>
+          <span className="min-w-0 flex-1 truncate">Search workspace</span>
           <kbd className="rounded bg-olive-950/5 px-2 py-1 text-xs text-olive-500 dark:bg-white/5 dark:text-olive-400">⌘K</kbd>
           <ThemeToggle />
           <BellIcon className="size-4 text-olive-950 dark:text-white" />
@@ -237,7 +262,7 @@ function Header({ title, subtitle, user }: { title: string; subtitle: string; us
         </div>
         <button className="flex h-9 w-fit items-center gap-2 rounded-md border border-olive-950/10 bg-white/60 px-3 text-sm text-olive-950 dark:border-white/10 dark:bg-white/[0.035] dark:text-white">
           <CalendarIcon className="size-4 text-olive-300" />
-          May 18 - May 24, 2024
+          {menuData?.dateRange ?? 'Current week'}
         </button>
       </div>
     </header>
@@ -265,15 +290,27 @@ function ThemeToggle() {
   )
 }
 
-export function DashboardShell({ title, subtitle, user, children }: { title: string; subtitle: string; user: DashboardUser; children: ReactNode }) {
+export function DashboardShell({
+  title,
+  subtitle,
+  user,
+  menuData,
+  children,
+}: {
+  title: string
+  subtitle: string
+  user: DashboardUser
+  menuData?: DashboardMenuData
+  children: ReactNode
+}) {
   return (
     <main className="min-h-dvh bg-olive-100 text-olive-950 dark:bg-olive-950 dark:text-white">
       <div className="absolute inset-0 -z-0 bg-[radial-gradient(circle_at_top_left,rgba(15,23,10,0.06),transparent_32rem)] dark:bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.06),transparent_32rem)]" />
       <div className="relative z-10 flex min-h-dvh">
-        <Sidebar user={user} />
+        <Sidebar user={user} menuData={menuData} />
         <div className="min-w-0 flex-1">
           <div className="mx-auto max-w-[1560px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
-            <Header title={title} subtitle={subtitle} user={user} />
+            <Header title={title} subtitle={subtitle} user={user} menuData={menuData} />
             {children}
           </div>
         </div>

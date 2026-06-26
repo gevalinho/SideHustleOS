@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, colorClasses, DashboardShell, Sparkline } from '@/components/dashboard/shell'
-import type { DashboardUser } from '@/components/dashboard/shell'
+import type { DashboardMenuData, DashboardUser } from '@/components/dashboard/shell'
 import { ArrowNarrowRightIcon } from '@/components/icons/arrow-narrow-right-icon'
 import { BanknotesIcon } from '@/components/icons/banknotes-icon'
 import { BriefcaseIcon } from '@/components/icons/briefcase-icon'
@@ -15,48 +15,93 @@ import { SparklesIcon } from '@/components/icons/sparkles-icon'
 import { StarIcon } from '@/components/icons/star-icon'
 import { TargetIcon } from '@/components/icons/target-icon'
 
-const stats = [
-  { label: 'Total Revenue', value: '$8,430', delta: '+24.5%', icon: BanknotesIcon, color: 'olive', data: [4, 8, 7, 11, 10, 13, 9, 16, 12, 18, 15, 23, 20, 28, 35, 31, 24, 33, 27, 39, 42] },
-  { label: 'Active Hustles', value: '4', delta: '+1 new this week', icon: BriefcaseIcon, color: 'olive', data: [2, 2, 3, 6, 5, 11, 10, 15, 17, 13, 12, 10, 16, 12, 11, 15, 22, 16, 21, 23, 23] },
-  { label: 'AI Automations', value: '23', delta: '+15.2%', icon: SparklesIcon, color: 'olive', data: [7, 6, 7, 6, 8, 15, 18, 26, 19, 17, 25, 18, 19, 17, 24, 18, 17, 27, 26, 41, 43] },
-  { label: 'Weekly Growth', value: '+18.6%', delta: 'vs previous 7 days', icon: ChartLineIcon, color: 'olive', data: [3, 3, 4, 6, 5, 9, 8, 12, 10, 16, 11, 13, 14, 8, 12, 17, 14, 20, 15, 28, 26] },
-]
+type StatIcon = 'revenue' | 'hustles' | 'agents' | 'growth'
 
-const recommendations = [
-  { title: 'Automate proposal follow-ups', detail: 'Save ~2.5 hours/week', action: 'Automate', icon: RocketIcon, color: 'olive' },
-  { title: 'Increase rates for Web Design', detail: 'Market rate is 18% higher', action: 'View Insight', icon: BanknotesIcon, color: 'olive' },
-  { title: 'Repurpose content with AI', detail: 'Create 5+ assets from one blog', action: 'Try Now', icon: LightingBoltIcon, color: 'olive' },
-]
+export type DashboardHomeData = {
+  menu: DashboardMenuData
+  stats: {
+    label: string
+    value: string
+    delta: string
+    icon: StatIcon
+    color: string
+    data: number[]
+  }[]
+  recommendations: {
+    title: string
+    detail: string
+    action: string
+    icon: 'rocket' | 'banknotes' | 'bolt'
+    color: string
+  }[]
+  priorities: {
+    task: string
+    time: string
+    done?: boolean
+  }[]
+  transactions: {
+    name: string
+    meta: string
+    amount: string
+    color: string
+    expense?: boolean
+  }[]
+  agents: {
+    name: string
+    detail: string
+    time: string
+    icon: 'star' | 'target' | 'document' | 'inbox'
+    color: string
+  }[]
+  opportunities: {
+    title: string
+    detail: string
+    match: string
+    icon: 'briefcase' | 'document' | 'chart'
+  }[]
+  topHustle: {
+    name: string
+    currentRevenue: string
+    growth: string
+    bars: number[]
+  } | null
+  earningsSegments: {
+    label: string
+    value: string
+    share: string
+    color: string
+  }[]
+  totalRevenue: string
+}
 
-const priorities = [
-  { task: 'Review client proposal', time: '10:00 AM', done: true },
-  { task: 'Design landing page', time: '1:00 PM' },
-  { task: 'Follow up with 2 leads', time: '3:30 PM' },
-  { task: 'Create content for Instagram', time: '5:00 PM' },
-]
+const statIcons = {
+  revenue: BanknotesIcon,
+  hustles: BriefcaseIcon,
+  agents: SparklesIcon,
+  growth: ChartLineIcon,
+}
 
-const transactions = [
-  { name: 'Client Payment - Acme Inc.', meta: 'May 24, 2024', amount: '+ $1,250', color: 'olive' },
-  { name: 'SEO Project - BluePeak', meta: 'May 23, 2024', amount: '+ $850', color: 'olive' },
-  { name: 'Content Writing - BlogCo', meta: 'May 22, 2024', amount: '+ $450', color: 'olive' },
-  { name: 'Canva Pro - Subscription', meta: 'May 21, 2024', amount: '- $12.99', color: 'olive', expense: true },
-]
+const recommendationIcons = {
+  rocket: RocketIcon,
+  banknotes: BanknotesIcon,
+  bolt: LightingBoltIcon,
+}
 
-const agents = [
-  { name: 'Proposal Writer Agent', detail: 'Generated proposal for Acme Inc.', time: '2 min ago', icon: StarIcon, color: 'olive' },
-  { name: 'Lead Research Agent', detail: 'Found 12 new leads', time: '15 min ago', icon: TargetIcon, color: 'olive' },
-  { name: 'Content Repurposer', detail: 'Created 6 social posts', time: '1 hr ago', icon: DocumentIcon, color: 'olive' },
-  { name: 'Invoice Generator', detail: 'Generated invoice #INV-0042', time: '2 hr ago', icon: InboxIcon, color: 'olive' },
-]
+const agentIcons = {
+  star: StarIcon,
+  target: TargetIcon,
+  document: DocumentIcon,
+  inbox: InboxIcon,
+}
 
-const opportunities = [
-  { title: 'High-Paying Project', detail: 'Webflow developer needed\nBudget: $2K - $5K', match: '98% Match', icon: BriefcaseIcon },
-  { title: 'New Client Match', detail: 'Marketing agency looking for SEO', match: '98% Match', icon: DocumentIcon },
-  { title: 'Upsell Opportunity', detail: 'Add copywriting to your Web Design service', match: '85% Match', icon: ChartLineIcon },
-]
+const opportunityIcons = {
+  briefcase: BriefcaseIcon,
+  document: DocumentIcon,
+  chart: ChartLineIcon,
+}
 
-function StatCard({ stat }: { stat: (typeof stats)[number] }) {
-  const Icon = stat.icon
+function StatCard({ stat }: { stat: DashboardHomeData['stats'][number] }) {
+  const Icon = statIcons[stat.icon]
   const color = colorClasses(stat.color)
 
   return (
@@ -78,7 +123,7 @@ function StatCard({ stat }: { stat: (typeof stats)[number] }) {
   )
 }
 
-function AiAssistant() {
+function AiAssistant({ recommendations }: { recommendations: DashboardHomeData['recommendations'] }) {
   return (
     <Card className="p-4 sm:p-5 xl:col-span-4">
       <div className="flex items-center justify-between">
@@ -91,7 +136,7 @@ function AiAssistant() {
       <p className="mt-3 text-sm text-olive-700 dark:text-olive-300">Recommendations for you</p>
       <div className="mt-4 space-y-2">
         {recommendations.map((item) => {
-          const Icon = item.icon
+          const Icon = recommendationIcons[item.icon]
           const color = colorClasses(item.color)
           return (
             <div key={item.title} className="flex items-center gap-3 rounded-lg border border-olive-950/5 dark:border-white/5 bg-white/70 dark:bg-white/[0.045] p-3">
@@ -116,7 +161,9 @@ function AiAssistant() {
   )
 }
 
-function TopHustle() {
+function TopHustle({ topHustle }: { topHustle: DashboardHomeData['topHustle'] }) {
+  const bars = topHustle?.bars.length ? topHustle.bars : [12, 18, 22, 30, 38, 44, 52]
+
   return (
     <Card className="overflow-hidden xl:col-span-4">
       <div className="flex items-center justify-between border-b border-olive-950/10 dark:border-white/10 p-4 sm:p-5">
@@ -129,16 +176,16 @@ function TopHustle() {
       <div className="p-4 sm:p-5">
         <div className="flex items-center gap-3">
           <div className="grid size-9 place-items-center rounded-lg bg-olive-950/5 dark:bg-white/10 text-olive-700 dark:text-olive-300">🏢</div>
-          <p className="font-semibold text-olive-950 dark:text-white">Web Design Studio</p>
+          <p className="font-semibold text-olive-950 dark:text-white">{topHustle?.name ?? 'No hustle yet'}</p>
           <span className="rounded-full bg-olive-950/5 dark:bg-white/10 px-2 py-1 text-xs font-medium text-olive-700 dark:text-olive-300">Main Hustle</span>
         </div>
         <p className="mt-5 text-sm text-olive-700 dark:text-olive-300">Revenue</p>
         <div className="flex items-end gap-3">
-          <p className="text-3xl font-semibold tracking-normal text-olive-950 dark:text-white">$4,320</p>
-          <p className="pb-1 text-sm text-olive-700 dark:text-olive-300">↑ 28.4%</p>
+          <p className="text-3xl font-semibold tracking-normal text-olive-950 dark:text-white">{topHustle?.currentRevenue ?? '$0'}</p>
+          <p className="pb-1 text-sm text-olive-700 dark:text-olive-300">↑ {topHustle?.growth ?? '0%'}</p>
         </div>
         <div className="mt-5 grid h-24 grid-cols-7 items-end gap-3 border-b border-olive-950/10 dark:border-white/10">
-          {[48, 40, 62, 48, 68, 78, 86].map((height, index) => (
+          {bars.map((height, index) => (
             <div key={index} className="w-full rounded-t-md bg-gradient-to-t from-olive-950 to-olive-500" style={{ height: `${height}%` }} />
           ))}
         </div>
@@ -152,7 +199,7 @@ function TopHustle() {
   )
 }
 
-function Priorities() {
+function Priorities({ priorities }: { priorities: DashboardHomeData['priorities'] }) {
   return (
     <Card className="p-4 sm:p-5 xl:col-span-4">
       <h2 className="font-semibold text-olive-950 dark:text-white">Today&apos;s Priorities</h2>
@@ -178,21 +225,14 @@ function Priorities() {
   )
 }
 
-function EarningsOverview() {
-  const segments = [
-    { label: 'Web Design', value: '$4,320', share: '52%', color: 'bg-olive-950' },
-    { label: 'SEO Services', value: '$2,020', share: '24%', color: 'bg-olive-500' },
-    { label: 'Content Writing', value: '$1,350', share: '16%', color: 'bg-olive-700' },
-    { label: 'Other', value: '$740', share: '8%', color: 'bg-olive-300' },
-  ]
-
+function EarningsOverview({ segments, totalRevenue }: { segments: DashboardHomeData['earningsSegments']; totalRevenue: string }) {
   return (
     <Card className="p-4 sm:p-5 xl:col-span-4">
       <h2 className="font-semibold text-olive-950 dark:text-white">Earnings Overview</h2>
       <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-center">
         <div className="relative mx-auto size-36 shrink-0 rounded-full bg-[conic-gradient(#15300d_0_52%,#466b35_52%_76%,#8a9a78_76%_92%,#d5d0b8_92%_100%)]">
           <div className="absolute inset-8 grid place-items-center rounded-full bg-olive-100 dark:bg-olive-950 text-center">
-            <p className="text-lg font-semibold text-olive-950 dark:text-white">$8,430</p>
+            <p className="text-lg font-semibold text-olive-950 dark:text-white">{totalRevenue}</p>
             <p className="text-xs text-olive-700 dark:text-olive-300">Total</p>
           </div>
         </div>
@@ -213,7 +253,7 @@ function EarningsOverview() {
   )
 }
 
-function RecentTransactions() {
+function RecentTransactions({ transactions }: { transactions: DashboardHomeData['transactions'] }) {
   return (
     <Card className="p-4 sm:p-5 xl:col-span-4">
       <div className="flex items-center justify-between">
@@ -243,7 +283,7 @@ function RecentTransactions() {
   )
 }
 
-function AgentActivity() {
+function AgentActivity({ agents }: { agents: DashboardHomeData['agents'] }) {
   return (
     <Card className="p-4 sm:p-5 xl:col-span-4">
       <div className="flex items-center justify-between">
@@ -254,7 +294,7 @@ function AgentActivity() {
       </div>
       <div className="mt-4 divide-y divide-olive-950/10 dark:divide-white/10">
         {agents.map((agent) => {
-          const Icon = agent.icon
+          const Icon = agentIcons[agent.icon]
           const color = colorClasses(agent.color)
           return (
             <div key={agent.name} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
@@ -277,7 +317,7 @@ function AgentActivity() {
   )
 }
 
-function Opportunities() {
+function Opportunities({ opportunities }: { opportunities: DashboardHomeData['opportunities'] }) {
   return (
     <Card className="p-4 sm:p-5">
       <div className="flex items-center justify-between gap-4">
@@ -291,7 +331,7 @@ function Opportunities() {
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-3">
         {opportunities.map((item) => {
-          const Icon = item.icon
+          const Icon = opportunityIcons[item.icon]
           return (
             <a key={item.title} href="/opportunities" className="flex items-center gap-4 rounded-lg border border-olive-950/10 bg-white/50 p-4 transition hover:bg-olive-950/[0.06] dark:border-white/10 dark:bg-white/[0.025] dark:hover:bg-white/[0.06]">
               <div className="grid size-10 place-items-center rounded-full bg-olive-950/5 dark:bg-white/10 text-olive-800 dark:text-olive-200">
@@ -313,29 +353,29 @@ function Opportunities() {
   )
 }
 
-export function DashboardHomePage({ user }: { user: DashboardUser }) {
+export function DashboardHomePage({ user, data }: { user: DashboardUser; data: DashboardHomeData }) {
   return (
-    <DashboardShell title={`Welcome back, ${user.name.split(' ')[0] || user.name}!`} subtitle="Here's what's happening with your hustles today." user={user}>
+    <DashboardShell title={`Welcome back, ${user.name.split(' ')[0] || user.name}!`} subtitle="Here's what's happening with your hustles today." user={user} menuData={data.menu}>
       <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((stat) => (
+        {data.stats.map((stat) => (
           <StatCard key={stat.label} stat={stat} />
         ))}
       </section>
 
       <section className="mt-5 grid gap-4 xl:grid-cols-12">
-        <AiAssistant />
-        <TopHustle />
-        <Priorities />
+        <AiAssistant recommendations={data.recommendations} />
+        <TopHustle topHustle={data.topHustle} />
+        <Priorities priorities={data.priorities} />
       </section>
 
       <section className="mt-4 grid gap-4 xl:grid-cols-12">
-        <EarningsOverview />
-        <RecentTransactions />
-        <AgentActivity />
+        <EarningsOverview segments={data.earningsSegments} totalRevenue={data.totalRevenue} />
+        <RecentTransactions transactions={data.transactions} />
+        <AgentActivity agents={data.agents} />
       </section>
 
       <section className="mt-4">
-        <Opportunities />
+        <Opportunities opportunities={data.opportunities} />
       </section>
     </DashboardShell>
   )
