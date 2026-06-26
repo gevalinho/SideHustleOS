@@ -3,6 +3,7 @@ import type { DashboardMenuData } from '@/components/dashboard/shell'
 import { getAgentMetrics, getAgentPerformance, listAgents } from '@/lib/agents-store'
 import { getEarningsMetrics, listEarnings, listInvoices } from '@/lib/earnings-store'
 import { getHustleMetrics, getHustlePerformance, listHustles } from '@/lib/hustles-store'
+import { getTaskMetrics, listTasks } from '@/lib/tasks-store'
 
 function currency(value: number) {
   return new Intl.NumberFormat('en-US', {
@@ -57,6 +58,7 @@ export function getDashboardMenuData(userId: string, plan: string): DashboardMen
   const hustleMetrics = getHustleMetrics(userId)
   const agentMetrics = getAgentMetrics(userId)
   const earningsMetrics = getEarningsMetrics(userId)
+  const taskMetrics = getTaskMetrics(userId)
   const isFreePlan = plan === 'free'
 
   return {
@@ -64,7 +66,7 @@ export function getDashboardMenuData(userId: string, plan: string): DashboardMen
     navBadges: {
       hustles: String(hustleMetrics.active),
       agents: String(agentMetrics.running),
-      tasks: String(hustleMetrics.openTasks + agentMetrics.approvalsPending),
+      tasks: String(taskMetrics.pending),
       earnings: currency(earningsMetrics.collected),
       opportunities: String(Math.min(Math.max(hustleMetrics.active * 3, 0), 99)),
       settings: plan.replaceAll('_', ' '),
@@ -87,6 +89,7 @@ export function getDashboardHomeData(userId: string, plan = 'free'): DashboardHo
   const agentMetrics = getAgentMetrics(userId)
   const earningsMetrics = getEarningsMetrics(userId)
   const earnings = listEarnings(userId)
+  const tasks = listTasks(userId, 'pending')
   const topHustle = [...hustles].sort((a, b) => b.currentRevenue - a.currentRevenue)[0] ?? null
   const performance = topHustle ? getHustlePerformance(topHustle, 21) : []
   const revenueSeries = sparklineFrom(performance.map((point) => point.revenue))
@@ -152,10 +155,10 @@ export function getDashboardHomeData(userId: string, plan = 'free'): DashboardHo
         color: 'olive',
       },
     ],
-    priorities: hustles.slice(0, 4).map((hustle, index) => ({
-      task: index === 0 ? `Review next action for ${hustle.name}` : `Advance ${hustle.name}`,
-      time: ['10:00 AM', '1:00 PM', '3:30 PM', '5:00 PM'][index] ?? 'Today',
-      done: index === 0 && hustle.currentRevenue > 0,
+    priorities: tasks.slice(0, 4).map((task) => ({
+      task: task.title,
+      time: new Date(task.dueAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      done: task.status === 'completed',
     })),
     transactions: earnings.slice(0, 4).map((earning) => ({
       name: earning.description,
@@ -278,5 +281,29 @@ export function getEarningsSectionData(userId: string) {
           : `Due ${new Date(invoice.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
       ] as [string, string, string, string]
     }),
+  }
+}
+
+export function getTasksSectionData(userId: string) {
+  const metrics = getTaskMetrics(userId)
+  const tasks = listTasks(userId)
+  const priorityTask = tasks.find((task) => task.status === 'pending' && task.priority === 'high') ?? tasks.find((task) => task.status === 'pending') ?? tasks[0] ?? null
+
+  return {
+    metrics: [
+      ['Due today', String(metrics.dueToday), `${metrics.aiAssisted} AI-assisted`],
+      ['Blocked', String(metrics.blocked), `${metrics.highPriority} high priority`],
+      ['Completed', String(metrics.completed), `${metrics.pending} pending`],
+    ] as [string, string, string][],
+    primary: priorityTask?.title ?? 'No tasks yet',
+    rows: tasks.slice(0, 8).map(
+      (task) =>
+        [
+          task.title,
+          new Date(task.dueAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+          task.priority === 'high' ? 'High impact' : task.priority === 'medium' ? 'Medium impact' : 'Low impact',
+          task.aiAssisted ? 'AI assisted' : task.status === 'completed' ? 'Complete' : task.status === 'blocked' ? 'Blocked' : 'Pending',
+        ] as [string, string, string, string],
+    ),
   }
 }
