@@ -3,6 +3,7 @@ import type { DashboardMenuData } from '@/components/dashboard/shell'
 import { getAgentMetrics, getAgentPerformance, listAgents } from '@/lib/agents-store'
 import { getEarningsMetrics, listEarnings, listInvoices } from '@/lib/earnings-store'
 import { getHustleMetrics, getHustlePerformance, listHustles } from '@/lib/hustles-store'
+import { getOpportunityMetrics, listOpportunities } from '@/lib/opportunities-store'
 import { getTaskMetrics, listTasks } from '@/lib/tasks-store'
 
 function currency(value: number) {
@@ -58,6 +59,7 @@ export function getDashboardMenuData(userId: string, plan: string): DashboardMen
   const hustleMetrics = getHustleMetrics(userId)
   const agentMetrics = getAgentMetrics(userId)
   const earningsMetrics = getEarningsMetrics(userId)
+  const opportunityMetrics = getOpportunityMetrics(userId)
   const taskMetrics = getTaskMetrics(userId)
   const isFreePlan = plan === 'free'
 
@@ -68,7 +70,7 @@ export function getDashboardMenuData(userId: string, plan: string): DashboardMen
       agents: String(agentMetrics.running),
       tasks: String(taskMetrics.pending),
       earnings: currency(earningsMetrics.collected),
-      opportunities: String(Math.min(Math.max(hustleMetrics.active * 3, 0), 99)),
+      opportunities: String(opportunityMetrics.highConfidence),
       settings: plan.replaceAll('_', ' '),
     },
     planPanel: {
@@ -90,6 +92,7 @@ export function getDashboardHomeData(userId: string, plan = 'free'): DashboardHo
   const earningsMetrics = getEarningsMetrics(userId)
   const earnings = listEarnings(userId)
   const tasks = listTasks(userId, 'pending')
+  const opportunities = listOpportunities(userId)
   const topHustle = [...hustles].sort((a, b) => b.currentRevenue - a.currentRevenue)[0] ?? null
   const performance = topHustle ? getHustlePerformance(topHustle, 21) : []
   const revenueSeries = sparklineFrom(performance.map((point) => point.revenue))
@@ -173,10 +176,10 @@ export function getDashboardHomeData(userId: string, plan = 'free'): DashboardHo
       icon: (['target', 'star', 'document', 'inbox'][index] ?? 'target') as DashboardHomeData['agents'][number]['icon'],
       color: 'olive',
     })),
-    opportunities: hustles.slice(0, 3).map((hustle, index) => ({
-      title: ['High-fit prospects', 'Retainer upsell', 'Offer optimization'][index] ?? 'Growth opportunity',
-      detail: `${hustle.name}\n${currency(Math.round(hustle.targetRevenue * 0.2))} potential`,
-      match: `${Math.max(98 - index * 7, 75)}% Match`,
+    opportunities: opportunities.slice(0, 3).map((opportunity, index) => ({
+      title: opportunity.title,
+      detail: `${opportunity.description}\n${currency(opportunity.estimatedValue)} potential`,
+      match: `${opportunity.matchScore}% Match`,
       icon: (['briefcase', 'document', 'chart'][index] ?? 'briefcase') as DashboardHomeData['opportunities'][number]['icon'],
     })),
     topHustle: topHustle
@@ -303,6 +306,30 @@ export function getTasksSectionData(userId: string) {
           new Date(task.dueAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
           task.priority === 'high' ? 'High impact' : task.priority === 'medium' ? 'Medium impact' : 'Low impact',
           task.aiAssisted ? 'AI assisted' : task.status === 'completed' ? 'Complete' : task.status === 'blocked' ? 'Blocked' : 'Pending',
+        ] as [string, string, string, string],
+    ),
+  }
+}
+
+export function getOpportunitiesSectionData(userId: string) {
+  const metrics = getOpportunityMetrics(userId)
+  const opportunities = listOpportunities(userId)
+  const topOpportunity = opportunities[0] ?? null
+
+  return {
+    metrics: [
+      ['Matched today', String(metrics.total), `${metrics.highConfidence} high confidence`],
+      ['Est. pipeline', currency(metrics.estimatedPipeline), `${metrics.averageMatchScore}% avg match`],
+      ['Pursued', String(metrics.pursued), `${metrics.dismissed} dismissed`],
+    ] as [string, string, string][],
+    primary: topOpportunity?.title ?? 'No opportunities yet',
+    rows: opportunities.slice(0, 8).map(
+      (opportunity) =>
+        [
+          opportunity.title,
+          `${opportunity.matchScore}% match`,
+          currency(opportunity.estimatedValue),
+          opportunity.status === 'pursued' ? 'Pursued' : opportunity.confidence === 'high' ? 'High confidence' : `${opportunity.confidence} confidence`,
         ] as [string, string, string, string],
     ),
   }

@@ -1,5 +1,12 @@
 import { DashboardSectionPage } from '@/components/dashboard/section-page'
-import { getAgentsSectionData, getDashboardMenuData, getEarningsSectionData, getHustlesSectionData, getTasksSectionData } from '@/lib/dashboard-data'
+import {
+  getAgentsSectionData,
+  getDashboardMenuData,
+  getEarningsSectionData,
+  getHustlesSectionData,
+  getOpportunitiesSectionData,
+  getTasksSectionData,
+} from '@/lib/dashboard-data'
 import { requireCompletedOnboarding } from '@/lib/session'
 
 type SectionKey =
@@ -24,7 +31,9 @@ export async function ProtectedDashboardSectionPage({ section, returnTo }: { sec
           ? getEarningsSectionData(accountSession.user.id)
           : section === 'tasks'
             ? getTasksSectionData(accountSession.user.id)
-            : undefined
+            : section === 'opportunities'
+              ? getOpportunitiesSectionData(accountSession.user.id)
+              : undefined
 
   return <DashboardSectionPage section={section} user={accountSession.user} sectionData={sectionData} menuData={getDashboardMenuData(accountSession.user.id, accountSession.user.plan)} />
 }
