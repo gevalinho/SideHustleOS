@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { ComponentType, HTMLAttributes, ReactNode, SVGProps } from 'react'
 
+import { createAdminBroadcast, overrideAdminDispute, updateAdminUserPlan, updateAdminUserStatus } from '@/app/admin/actions'
 import type { DashboardUser } from '@/components/dashboard/shell'
 import { BanknotesIcon } from '@/components/icons/banknotes-icon'
 import { BellIcon } from '@/components/icons/bell-icon'
@@ -67,6 +68,7 @@ type AdminDashboardData = {
       role: string
       plan: string
       adminStatus: string
+      statusReason?: string | null
       createdAt: string
     }[]
     pagination: Pagination
@@ -236,6 +238,164 @@ function PaginationControls({
   )
 }
 
+function AdminUserControls({ item, currentUserId }: { item: AdminDashboardData['users']['items'][number]; currentUserId: string }) {
+  const isAdminAccount = item.role === 'admin'
+  const statusDisabled = isAdminAccount && item.id === currentUserId
+
+  return (
+    <div className="grid min-w-[360px] gap-2 lg:min-w-[420px]">
+      <form action={updateAdminUserPlan} className="flex items-center gap-2">
+        <input type="hidden" name="userId" value={item.id} />
+        <label className="sr-only" htmlFor={`plan-${item.id}`}>
+          Change plan for {item.email}
+        </label>
+        <select
+          id={`plan-${item.id}`}
+          name="plan"
+          defaultValue={item.plan}
+          className="h-9 min-w-32 rounded-md border border-olive-950/10 bg-white px-2 text-xs font-medium text-olive-800 outline-none focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-white/10 dark:bg-white/10 dark:text-olive-100"
+        >
+          <option value="free">Free</option>
+          <option value="starter">Starter</option>
+          <option value="pro">Pro</option>
+          <option value="revenue_share">Revenue share</option>
+        </select>
+        <button type="submit" className="h-9 rounded-md bg-olive-950 px-3 text-xs font-semibold text-white dark:bg-olive-300 dark:text-olive-950">
+          Save plan
+        </button>
+      </form>
+
+      <form action={updateAdminUserStatus} className="grid gap-2 sm:grid-cols-[0.75fr_1fr_auto] sm:items-center">
+        <input type="hidden" name="userId" value={item.id} />
+        <label className="sr-only" htmlFor={`status-${item.id}`}>
+          Change status for {item.email}
+        </label>
+        <select
+          id={`status-${item.id}`}
+          name="status"
+          defaultValue={item.adminStatus}
+          disabled={statusDisabled}
+          className="h-9 rounded-md border border-olive-950/10 bg-white px-2 text-xs font-medium text-olive-800 outline-none disabled:cursor-not-allowed disabled:opacity-60 focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-white/10 dark:bg-white/10 dark:text-olive-100"
+        >
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+          <option value="banned">Banned</option>
+        </select>
+        <label className="sr-only" htmlFor={`reason-${item.id}`}>
+          Moderation reason
+        </label>
+        <input
+          id={`reason-${item.id}`}
+          name="reason"
+          defaultValue={item.statusReason ?? (item.adminStatus === 'active' ? 'Account reviewed by admin.' : '')}
+          placeholder="Reason"
+          disabled={statusDisabled}
+          className="h-9 rounded-md border border-olive-950/10 bg-white px-2 text-xs text-olive-800 outline-none placeholder:text-olive-400 disabled:cursor-not-allowed disabled:opacity-60 focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-white/10 dark:bg-white/10 dark:text-olive-100 dark:placeholder:text-olive-500"
+        />
+        <button
+          type="submit"
+          disabled={statusDisabled}
+          className="h-9 rounded-md border border-olive-950/10 bg-white/70 px-3 text-xs font-semibold text-olive-800 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.06] dark:text-olive-200"
+        >
+          Save status
+        </button>
+      </form>
+      {statusDisabled ? <p className="text-xs text-olive-600 dark:text-olive-400">Your active admin account is protected from self-moderation.</p> : null}
+    </div>
+  )
+}
+
+function BroadcastForm() {
+  return (
+    <form action={createAdminBroadcast} className="mt-4 space-y-2 rounded-md border border-olive-950/10 bg-white/50 p-3 dark:border-white/10 dark:bg-white/[0.035]">
+      <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+        <label className="sr-only" htmlFor="broadcast-title">
+          Broadcast title
+        </label>
+        <input
+          id="broadcast-title"
+          name="title"
+          required
+          placeholder="Broadcast title"
+          className="h-9 rounded-md border border-olive-950/10 bg-white px-2 text-xs text-olive-800 outline-none placeholder:text-olive-400 focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-white/10 dark:bg-white/10 dark:text-olive-100"
+        />
+        <label className="sr-only" htmlFor="broadcast-audience">
+          Broadcast audience
+        </label>
+        <select
+          id="broadcast-audience"
+          name="audience"
+          defaultValue="all"
+          className="h-9 rounded-md border border-olive-950/10 bg-white px-2 text-xs font-medium text-olive-800 outline-none focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-white/10 dark:bg-white/10 dark:text-olive-100"
+        >
+          <option value="all">All users</option>
+          <option value="paid">Paid users</option>
+        </select>
+      </div>
+      <label className="sr-only" htmlFor="broadcast-body">
+        Broadcast body
+      </label>
+      <textarea
+        id="broadcast-body"
+        name="body"
+        required
+        rows={3}
+        placeholder="Message body"
+        className="w-full resize-none rounded-md border border-olive-950/10 bg-white px-2 py-2 text-xs text-olive-800 outline-none placeholder:text-olive-400 focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-white/10 dark:bg-white/10 dark:text-olive-100"
+      />
+      <button type="submit" className="h-9 rounded-md bg-olive-950 px-3 text-xs font-semibold text-white dark:bg-olive-300 dark:text-olive-950">
+        Send broadcast
+      </button>
+    </form>
+  )
+}
+
+function DisputeOverrideForm({ dispute }: { dispute: AdminDashboardData['disputes']['items'][number] }) {
+  return (
+    <form action={overrideAdminDispute} className="grid gap-2 lg:grid-cols-[0.75fr_0.55fr_1fr_auto] lg:items-center">
+      <input type="hidden" name="disputeId" value={dispute.id} />
+      <label className="sr-only" htmlFor={`winner-${dispute.id}`}>
+        Dispute winner
+      </label>
+      <select
+        id={`winner-${dispute.id}`}
+        name="winner"
+        defaultValue="split"
+        className="h-9 rounded-md border border-olive-950/10 bg-white px-2 text-xs font-medium text-olive-800 outline-none focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-white/10 dark:bg-white/10 dark:text-olive-100"
+      >
+        <option value="client">Client</option>
+        <option value="freelancer">Freelancer</option>
+        <option value="split">Split</option>
+      </select>
+      <label className="sr-only" htmlFor={`split-${dispute.id}`}>
+        Split percent
+      </label>
+      <input
+        id={`split-${dispute.id}`}
+        name="splitPercent"
+        type="number"
+        min={1}
+        max={99}
+        defaultValue={50}
+        className="h-9 rounded-md border border-olive-950/10 bg-white px-2 text-xs text-olive-800 outline-none focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-white/10 dark:bg-white/10 dark:text-olive-100"
+      />
+      <label className="sr-only" htmlFor={`reason-${dispute.id}`}>
+        Override reason
+      </label>
+      <input
+        id={`reason-${dispute.id}`}
+        name="adminReason"
+        required
+        placeholder="Override reason"
+        className="h-9 rounded-md border border-olive-950/10 bg-white px-2 text-xs text-olive-800 outline-none placeholder:text-olive-400 focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-white/10 dark:bg-white/10 dark:text-olive-100"
+      />
+      <button type="submit" className="h-9 rounded-md bg-olive-950 px-3 text-xs font-semibold text-white dark:bg-olive-300 dark:text-olive-950">
+        Override
+      </button>
+    </form>
+  )
+}
+
 function statusTone(status: string): 'neutral' | 'good' | 'warning' | 'danger' {
   if (status === 'ok' || status === 'active' || status === 'running') return 'good'
   if (status === 'suspended' || status === 'open') return 'warning'
@@ -310,7 +470,17 @@ function Sidebar({ user }: { user: DashboardUser }) {
   )
 }
 
-export function AdminDashboardPage({ user, data, query }: { user: DashboardUser; data: AdminDashboardData; query: AdminDashboardQuery }) {
+export function AdminDashboardPage({
+  user,
+  currentUserId,
+  data,
+  query,
+}: {
+  user: DashboardUser
+  currentUserId: string
+  data: AdminDashboardData
+  query: AdminDashboardQuery
+}) {
   const riskCount = data.stats.users.suspended + data.stats.users.banned + data.disputes.pagination.total
   const paidRate = data.stats.users.total ? Math.round((data.stats.users.paid / data.stats.users.total) * 100) : 0
 
@@ -389,6 +559,7 @@ export function AdminDashboardPage({ user, data, query }: { user: DashboardUser;
                         <th className="px-4 py-3 font-medium sm:px-5">Role</th>
                         <th className="px-4 py-3 font-medium sm:px-5">Status</th>
                         <th className="px-4 py-3 font-medium sm:px-5">Created</th>
+                        <th className="px-4 py-3 font-medium sm:px-5">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-olive-950/10 dark:divide-white/10">
@@ -407,11 +578,14 @@ export function AdminDashboardPage({ user, data, query }: { user: DashboardUser;
                           <td className="px-4 py-4 text-olive-700 dark:text-olive-300 sm:px-5">{item.role}</td>
                           <td className="px-4 py-4 sm:px-5"><StatusPill tone={statusTone(item.adminStatus)}>{item.adminStatus}</StatusPill></td>
                           <td className="px-4 py-4 text-olive-700 dark:text-olive-300 sm:px-5">{formatDate(item.createdAt)}</td>
+                          <td className="px-4 py-4 sm:px-5">
+                            <AdminUserControls item={item} currentUserId={currentUserId} />
+                          </td>
                         </tr>
                       ))}
                       {!data.users.items.length ? (
                         <tr>
-                          <td colSpan={5} className="px-4 py-5 text-sm text-olive-700 dark:text-olive-300 sm:px-5">
+                          <td colSpan={6} className="px-4 py-5 text-sm text-olive-700 dark:text-olive-300 sm:px-5">
                             No users match the current admin view.
                           </td>
                         </tr>
@@ -460,6 +634,7 @@ export function AdminDashboardPage({ user, data, query }: { user: DashboardUser;
                       </div>
                     )) : <p className="text-sm text-olive-700 dark:text-olive-300">No broadcasts sent yet.</p>}
                   </div>
+                  <BroadcastForm />
                   <PaginationControls pagination={data.broadcasts.pagination} query={query} pageKey="broadcastsPage" hash="#system" />
                 </AdminCard>
               </div>
@@ -507,11 +682,14 @@ export function AdminDashboardPage({ user, data, query }: { user: DashboardUser;
                 <SectionHeader title="Dispute Queue" detail="Open disputes requiring platform intervention." action={<StatusPill tone={data.disputes.pagination.total ? 'warning' : 'good'}>{data.disputes.pagination.total} open</StatusPill>} />
                 <div className="divide-y divide-olive-950/10 dark:divide-white/10">
                   {data.disputes.items.length ? data.disputes.items.map((dispute) => (
-                    <div key={dispute.id} className="grid gap-3 p-4 sm:grid-cols-[1.4fr_0.5fr_0.5fr_0.7fr] sm:items-center sm:p-5">
-                      <p className="font-medium text-olive-950 dark:text-white">{dispute.title}</p>
-                      <p className="text-sm text-olive-700 dark:text-olive-300">{currency(dispute.amount)}</p>
-                      <StatusPill tone={statusTone(dispute.status)}>{dispute.status}</StatusPill>
-                      <p className="text-sm text-olive-700 dark:text-olive-300">{formatDate(dispute.createdAt)}</p>
+                    <div key={dispute.id} className="grid gap-4 p-4 sm:p-5 xl:grid-cols-[0.8fr_1.2fr] xl:items-center">
+                      <div className="grid gap-3 sm:grid-cols-[1.4fr_0.5fr_0.5fr_0.7fr] sm:items-center">
+                        <p className="font-medium text-olive-950 dark:text-white">{dispute.title}</p>
+                        <p className="text-sm text-olive-700 dark:text-olive-300">{currency(dispute.amount)}</p>
+                        <StatusPill tone={statusTone(dispute.status)}>{dispute.status}</StatusPill>
+                        <p className="text-sm text-olive-700 dark:text-olive-300">{formatDate(dispute.createdAt)}</p>
+                      </div>
+                      <DisputeOverrideForm dispute={dispute} />
                     </div>
                   )) : <div className="p-5 text-sm text-olive-700 dark:text-olive-300">No open disputes.</div>}
                 </div>

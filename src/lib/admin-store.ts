@@ -143,7 +143,13 @@ export function getAdminUserDetails(userId: string) {
 }
 
 export function setAdminUserStatus(userId: string, input: { status: AdminUserStatus; reason: string }) {
-  if (!authStore.users.has(userId)) {
+  const user = authStore.users.get(userId)
+
+  if (!user) {
+    return null
+  }
+
+  if (user.role === 'admin' && input.status !== 'active') {
     return null
   }
 

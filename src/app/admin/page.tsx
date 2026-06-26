@@ -61,6 +61,7 @@ export default async function AdminPage({
   return (
     <AdminDashboardPage
       user={accountSession.user}
+      currentUserId={accountSession.user.id}
       query={params}
       data={{
         stats: getPlatformStats(),
