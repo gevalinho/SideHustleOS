@@ -17,7 +17,7 @@ export default async function RegisterPage({
   }>
 }) {
   const params = await searchParams
-  const returnTo = safeRedirectPath(params.returnTo)
+  const returnTo = params.returnTo ? safeRedirectPath(params.returnTo) : '/onboarding'
 
   if (await hasAccountSession()) {
     redirect(returnTo)
@@ -40,4 +40,3 @@ export default async function RegisterPage({
     </AuthShell>
   )
 }
-

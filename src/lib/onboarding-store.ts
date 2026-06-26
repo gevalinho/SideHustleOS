@@ -27,6 +27,7 @@ export type OnboardingState = {
   userId: string
   currentStep: number
   completedSteps: number[]
+  completed: boolean
   skillSource: SkillSource | null
   extractedSkills: string[]
   businessOptions: BusinessOption[]
@@ -63,6 +64,7 @@ export function getOnboardingState(userId: string) {
     userId,
     currentStep: 1,
     completedSteps: [1],
+    completed: false,
     skillSource: null,
     extractedSkills: [],
     businessOptions: [],
@@ -97,7 +99,7 @@ export function completeSteps(existing: number[], ...steps: number[]) {
 
 export function extractSkillsFromText(text: string) {
   const lower = text.toLowerCase()
-  const detected = [
+  const skillDetectors: Array<[string, string[]]> = [
     ['React development', ['react', 'frontend', 'front-end']],
     ['SaaS dashboard design', ['saas', 'dashboard']],
     ['Design systems', ['design system']],
@@ -105,6 +107,8 @@ export function extractSkillsFromText(text: string) {
     ['Technical documentation', ['documentation', 'technical writing']],
     ['Startup product leadership', ['startup', 'lead']],
   ]
+
+  const detected = skillDetectors
     .filter(([, keywords]) => keywords.some((keyword) => lower.includes(keyword)))
     .map(([skill]) => skill)
 
@@ -171,3 +175,6 @@ export function selectBusiness(userId: string, index: number) {
   })
 }
 
+export function isOnboardingComplete(userId: string) {
+  return getOnboardingState(userId).completed
+}

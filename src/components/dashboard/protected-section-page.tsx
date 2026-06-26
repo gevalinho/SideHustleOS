@@ -1,5 +1,5 @@
 import { DashboardSectionPage } from '@/components/dashboard/section-page'
-import { requireAccountSession } from '@/lib/session'
+import { requireCompletedOnboarding } from '@/lib/session'
 
 type SectionKey =
   | 'hustles'
@@ -13,7 +13,7 @@ type SectionKey =
   | 'settings'
 
 export async function ProtectedDashboardSectionPage({ section, returnTo }: { section: SectionKey; returnTo: string }) {
-  const accountSession = await requireAccountSession(returnTo)
+  const accountSession = await requireCompletedOnboarding(returnTo)
 
   return <DashboardSectionPage section={section} user={accountSession.user} />
 }

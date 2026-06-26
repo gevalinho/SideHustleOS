@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 
 import { temporaryAccountSessionCookieName } from '@/lib/account-session'
 import { authStore, getSessionByAccessToken, toPublicUser } from '@/lib/auth-store'
+import { isOnboardingComplete } from '@/lib/onboarding-store'
 
 export async function hasAccountSession() {
   return Boolean(await getAccountSession())
@@ -47,6 +48,16 @@ export async function requireAccountSession(returnTo = '/') {
 
   if (!accountSession) {
     redirect(`/login?returnTo=${encodeURIComponent(safeRedirectPath(returnTo))}`)
+  }
+
+  return accountSession
+}
+
+export async function requireCompletedOnboarding(returnTo = '/') {
+  const accountSession = await requireAccountSession(returnTo)
+
+  if (!isOnboardingComplete(accountSession.user.id)) {
+    redirect('/onboarding')
   }
 
   return accountSession

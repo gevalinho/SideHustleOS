@@ -1,6 +1,6 @@
 import { DashboardHomePage } from '@/components/dashboard/home-page'
 import { LandingPage } from '@/components/landing/landing-page'
-import { getAccountSession } from '@/lib/session'
+import { getAccountSession, requireCompletedOnboarding } from '@/lib/session'
 
 export default async function Page() {
   const accountSession = await getAccountSession()
@@ -9,5 +9,7 @@ export default async function Page() {
     return <LandingPage />
   }
 
-  return <DashboardHomePage user={accountSession.user} />
+  const completedAccountSession = await requireCompletedOnboarding('/')
+
+  return <DashboardHomePage user={completedAccountSession.user} />
 }
