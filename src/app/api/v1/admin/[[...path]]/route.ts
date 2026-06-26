@@ -4,7 +4,6 @@ import {
   createBroadcast,
   getAdminUserDetails,
   getPlatformStats,
-  getSystemHealth,
   impersonateUser,
   listAdminAgentLogs,
   listAdminUsers,
@@ -15,6 +14,7 @@ import {
   setUserPlan,
 } from '@/lib/admin-store'
 import { getRequestAuth } from '@/lib/request-auth'
+import { getSystemHealth } from '@/lib/system-health'
 import type { AdminDispute, AdminUserStatus } from '@/lib/admin-store'
 import type { PublicUser } from '@/lib/auth-store'
 

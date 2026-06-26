@@ -89,19 +89,6 @@ export function getPlatformStats() {
   }
 }
 
-export function getSystemHealth() {
-  return {
-    status: 'ok',
-    services: [
-      { name: 'api', status: 'ok' },
-      { name: 'auth-store', status: 'ok', records: authStore.users.size },
-      { name: 'agents-store', status: 'ok', records: agentsStore.agents.size },
-      { name: 'admin-store', status: 'ok', records: adminStore.disputes.size + adminStore.broadcasts.size },
-    ],
-    checkedAt: now(),
-  }
-}
-
 export function listAdminUsers(input: { search?: string; plan?: string; page: number; limit: number }) {
   const search = input.search?.trim().toLowerCase()
   const users = publicUsers()

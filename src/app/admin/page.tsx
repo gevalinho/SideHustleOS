@@ -2,13 +2,13 @@ import { AdminDashboardPage } from '@/components/admin/admin-dashboard-page'
 import {
   adminStore,
   getPlatformStats,
-  getSystemHealth,
   listAdminAgentLogs,
   listAdminUsers,
   listOpenDisputes,
   listRunningAgents,
 } from '@/lib/admin-store'
 import { requireAdminSession } from '@/lib/admin-session'
+import { getSystemHealth } from '@/lib/system-health'
 
 const pageSizes = {
   users: 10,
