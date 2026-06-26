@@ -3,6 +3,7 @@ import type { DashboardMenuData } from '@/components/dashboard/shell'
 import { getAgentMetrics, getAgentPerformance, listAgents } from '@/lib/agents-store'
 import { getAgentAnalytics, getAnalyticsSummary, getOutreachAnalytics, getRevenueAnalytics } from '@/lib/analytics-store'
 import { getBillingStatus } from '@/lib/billing-store'
+import { getClientMetrics, listClients } from '@/lib/clients-store'
 import { getEarningsMetrics, listEarnings, listInvoices } from '@/lib/earnings-store'
 import { getHustleMetrics, getHustlePerformance, listHustles } from '@/lib/hustles-store'
 import { getOpportunityMetrics, listOpportunities } from '@/lib/opportunities-store'
@@ -65,6 +66,7 @@ export function getDashboardMenuData(userId: string): DashboardMenuData {
   const opportunityMetrics = getOpportunityMetrics(userId)
   const settingsMetrics = getSettingsMetrics(userId)
   const taskMetrics = getTaskMetrics(userId)
+  const clientMetrics = getClientMetrics(userId)
   const billingStatus = getBillingStatus(userId)
   const isFreePlan = billingStatus.account.plan === 'free'
 
@@ -74,6 +76,7 @@ export function getDashboardMenuData(userId: string): DashboardMenuData {
       hustles: String(hustleMetrics.active),
       agents: String(agentMetrics.running),
       tasks: String(taskMetrics.pending),
+      clients: String(clientMetrics.active),
       earnings: currency(earningsMetrics.collected),
       opportunities: String(opportunityMetrics.highConfidence),
       settings: billingStatus.account.plan.replaceAll('_', ' '),
@@ -402,5 +405,29 @@ export function getAnalyticsSectionData(userId: string) {
           ] as [string, string, string, string],
       ),
     ],
+  }
+}
+
+export function getClientsSectionData(userId: string) {
+  const clients = listClients(userId)
+  const metrics = getClientMetrics(userId)
+  const topClient = [...clients].sort((a, b) => b.totalRevenue - a.totalRevenue)[0] ?? null
+
+  return {
+    metrics: [
+      ['Active clients', String(metrics.active), `${metrics.total} total`],
+      ['Hot prospects', String(metrics.prospects), `${metrics.past} past clients`],
+      ['Avg client value', currency(metrics.averageClientValue), currency(metrics.totalRevenue)],
+    ] as [string, string, string][],
+    primary: topClient?.company ?? 'No clients yet',
+    rows: clients.slice(0, 8).map(
+      (client) =>
+        [
+          client.company || client.name,
+          client.status === 'active' ? 'Active' : client.status === 'prospect' ? 'Prospect' : 'Past',
+          currency(client.totalRevenue),
+          client.email,
+        ] as [string, string, string, string],
+    ),
   }
 }

@@ -2,6 +2,7 @@ import { DashboardSectionPage } from '@/components/dashboard/section-page'
 import {
   getAgentsSectionData,
   getAnalyticsSectionData,
+  getClientsSectionData,
   getDashboardMenuData,
   getEarningsSectionData,
   getHustlesSectionData,
@@ -39,7 +40,9 @@ export async function ProtectedDashboardSectionPage({ section, returnTo }: { sec
                 ? getSettingsSectionData(accountSession.user.id)
                 : section === 'analytics'
                   ? getAnalyticsSectionData(accountSession.user.id)
-                  : undefined
+                  : section === 'clients'
+                    ? getClientsSectionData(accountSession.user.id)
+                    : undefined
 
   return <DashboardSectionPage section={section} user={accountSession.user} sectionData={sectionData} menuData={getDashboardMenuData(accountSession.user.id)} />
 }
