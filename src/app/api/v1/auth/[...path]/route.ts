@@ -13,6 +13,7 @@ import {
   normalizeEmail,
   randomToken,
   revokeUserSessions,
+  seedAdminUser,
   toPublicUser,
   updateUser,
   verifyPassword,
@@ -201,6 +202,8 @@ async function register(request: Request) {
 }
 
 async function login(request: Request) {
+  seedAdminUser()
+
   const body = await readJson(request)
   const email = normalizeEmail(body.email)
   const password = typeof body.password === 'string' ? body.password : ''

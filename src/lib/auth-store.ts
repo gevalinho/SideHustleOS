@@ -119,6 +119,22 @@ export function createUser(input: { name: string; email: string; password: strin
   return user
 }
 
+export function seedAdminUser() {
+  const email = 'admin@sidehustleos.app'
+  const existing = getUserByEmail(email)
+
+  if (existing) {
+    return existing
+  }
+
+  return createUser({
+    name: 'SideHustleOS Admin',
+    email,
+    password: 'AdminPass123!',
+    role: 'admin',
+  })
+}
+
 export function updateUser(user: UserRecord, patch: Partial<UserRecord>) {
   const updated = {
     ...user,

@@ -25,6 +25,7 @@ type AuthPayload = {
     id: string
     name: string
     email: string
+    role: 'user' | 'admin'
   }
 }
 
@@ -148,7 +149,7 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
     setState({ ...initialState, isSubmitting: true })
 
     try {
-      await apiRequest<AuthPayload>('/login', {
+      const payload = await apiRequest<AuthPayload>('/login', {
         method: 'POST',
         body: JSON.stringify({
           email: form.get('email'),
@@ -156,7 +157,7 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
           totpCode: form.get('totpCode') || undefined,
         }),
       })
-      router.replace(destination)
+      router.replace(payload.user.role === 'admin' && destination === '/' ? '/admin' : destination)
       router.refresh()
     } catch (error) {
       setState({ error: error instanceof Error ? error.message : 'Unable to sign in.', success: '', isSubmitting: false })

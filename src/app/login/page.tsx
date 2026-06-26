@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 
 import { LoginForm } from '@/components/auth/auth-forms'
 import { AuthShell } from '@/components/auth/auth-shell'
-import { hasAccountSession, safeRedirectPath } from '@/lib/session'
+import { getAccountSession, safeRedirectPath } from '@/lib/session'
 
 export const metadata = {
   title: 'Sign in | SideHustleOS',
@@ -19,8 +19,10 @@ export default async function LoginPage({
   const params = await searchParams
   const returnTo = safeRedirectPath(params.returnTo)
 
-  if (await hasAccountSession()) {
-    redirect(returnTo)
+  const accountSession = await getAccountSession()
+
+  if (accountSession) {
+    redirect(accountSession.user.role === 'admin' && returnTo === '/' ? '/admin' : returnTo)
   }
 
   return (
@@ -40,4 +42,3 @@ export default async function LoginPage({
     </AuthShell>
   )
 }
-
