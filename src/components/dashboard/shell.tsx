@@ -35,6 +35,7 @@ type NavKey = 'dashboard' | 'hustles' | 'agents' | 'tasks' | 'clients' | 'earnin
 
 export type DashboardMenuData = {
   dateRange: string
+  unreadNotifications: number
   navBadges: Partial<Record<NavKey, string>>
   planPanel: {
     title: string
@@ -257,7 +258,14 @@ function Header({ title, subtitle, user, menuData }: { title: string; subtitle: 
           <span className="min-w-0 flex-1 truncate">Search workspace</span>
           <kbd className="rounded bg-olive-950/5 px-2 py-1 text-xs text-olive-500 dark:bg-white/5 dark:text-olive-400">⌘K</kbd>
           <ThemeToggle />
-          <BellIcon className="size-4 text-olive-950 dark:text-white" />
+          <span className="relative grid size-8 shrink-0 place-items-center rounded-md border border-olive-950/10 bg-olive-950/[0.04] text-olive-950 dark:border-white/10 dark:bg-white/[0.04] dark:text-white">
+            <BellIcon className="size-4" />
+            {menuData?.unreadNotifications ? (
+              <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-olive-950 px-1 text-center text-[10px] font-semibold leading-4 text-white ring-2 ring-white dark:bg-olive-300 dark:text-olive-950 dark:ring-olive-950">
+                {menuData.unreadNotifications > 9 ? '9+' : menuData.unreadNotifications}
+              </span>
+            ) : null}
+          </span>
           <ProfileMenu user={user} />
         </div>
         <button className="flex h-9 w-fit items-center gap-2 rounded-md border border-olive-950/10 bg-white/60 px-3 text-sm text-olive-950 dark:border-white/10 dark:bg-white/[0.035] dark:text-white">
