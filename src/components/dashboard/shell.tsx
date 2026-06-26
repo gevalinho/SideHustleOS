@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { ComponentType, ReactNode, SVGProps } from 'react'
@@ -14,6 +13,7 @@ import { ChartLineIcon } from '@/components/icons/chart-line-icon'
 import { ClipboardIcon } from '@/components/icons/clipboard-icon'
 import { CogIcon } from '@/components/icons/cog-icon'
 import { HomeIcon } from '@/components/icons/home-icon'
+import { LockOpenIcon } from '@/components/icons/lock-open-icon'
 import { MagnifyingGlassIcon } from '@/components/icons/magnifying-glass-icon'
 import { MoonIcon } from '@/components/icons/moon-icon'
 import { PaperclipIcon } from '@/components/icons/paperclip-icon'
@@ -24,6 +24,12 @@ import { TargetIcon } from '@/components/icons/target-icon'
 import { User2Icon } from '@/components/icons/user-2-icon'
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>
+
+export type DashboardUser = {
+  name: string
+  email: string
+  plan: string
+}
 
 const navItems: { name: string; href: string; icon: Icon }[] = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
@@ -82,7 +88,75 @@ export function Sparkline({ data, color }: { data: number[]; color: string }) {
   )
 }
 
-function Sidebar() {
+function formatPlan(plan: string) {
+  return `${plan.replaceAll('_', ' ').replace(/^\w/, (letter) => letter.toUpperCase())} Plan`
+}
+
+function userInitials(name: string, email: string) {
+  const source = name.trim() || email.trim()
+  const parts = source.split(/\s+/).filter(Boolean)
+
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+  }
+
+  return source.slice(0, 2).toUpperCase() || 'SH'
+}
+
+function UserAvatar({ user, size = 'md' }: { user: DashboardUser; size?: 'sm' | 'md' }) {
+  return (
+    <span
+      className={`grid shrink-0 place-items-center rounded-full bg-olive-950 text-white ring-2 ring-white dark:bg-olive-300 dark:text-olive-950 dark:ring-olive-900 ${
+        size === 'sm' ? 'size-8 text-xs' : 'size-10 text-sm'
+      }`}
+      aria-hidden="true"
+    >
+      {userInitials(user.name, user.email)}
+    </span>
+  )
+}
+
+function ProfileMenu({ user, placement = 'header' }: { user: DashboardUser; placement?: 'header' | 'sidebar' }) {
+  const panelPosition = placement === 'sidebar' ? 'bottom-full right-0 mb-2' : 'right-0 top-full mt-2'
+
+  return (
+    <details className="group relative">
+      <summary
+        aria-label="Open profile menu"
+        className={`flex cursor-pointer list-none items-center gap-3 rounded-lg border border-olive-950/10 bg-white/60 text-left transition hover:bg-white dark:border-white/10 dark:bg-white/[0.035] dark:hover:bg-white/[0.07] [&::-webkit-details-marker]:hidden ${
+          placement === 'sidebar' ? 'w-full p-3' : 'h-10 px-2 py-1'
+        }`}
+      >
+        <UserAvatar user={user} size={placement === 'sidebar' ? 'md' : 'sm'} />
+        {placement === 'sidebar' ? (
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-medium text-olive-950 dark:text-white">{user.name}</span>
+            <span className="block truncate text-xs text-olive-600 dark:text-olive-300">{formatPlan(user.plan)}</span>
+          </span>
+        ) : null}
+      </summary>
+
+      <div
+        className={`absolute z-30 w-64 overflow-hidden rounded-lg border border-olive-950/10 bg-white shadow-xl shadow-olive-950/10 ring-1 ring-white/70 dark:border-white/10 dark:bg-olive-900 dark:shadow-black/30 dark:ring-white/10 ${panelPosition}`}
+      >
+        <div className="border-b border-olive-950/10 p-3 dark:border-white/10">
+          <p className="truncate text-sm font-semibold text-olive-950 dark:text-white">{user.name}</p>
+          <p className="mt-1 truncate text-xs text-olive-600 dark:text-olive-300">{user.email}</p>
+          <p className="mt-2 text-xs font-medium text-olive-700 dark:text-olive-200">{formatPlan(user.plan)}</p>
+        </div>
+        <Link
+          href="/logout"
+          className="flex h-11 items-center gap-3 px-3 text-sm font-medium text-olive-800 transition hover:bg-olive-950/[0.06] hover:text-olive-950 dark:text-olive-200 dark:hover:bg-white/10 dark:hover:text-white"
+        >
+          <LockOpenIcon className="size-4" />
+          Log out
+        </Link>
+      </div>
+    </details>
+  )
+}
+
+function Sidebar({ user }: { user: DashboardUser }) {
   const pathname = usePathname()
 
   return (
@@ -130,19 +204,13 @@ function Sidebar() {
           </button>
         </div>
 
-        <div className="flex items-center gap-3 rounded-lg border border-olive-950/10 bg-white/60 p-3 dark:border-white/10 dark:bg-white/[0.035]">
-          <Image src="/img/avatars/12-size-160.webp" alt="" width={40} height={40} className="size-10 rounded-full object-cover" />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-olive-950 dark:text-white">Arjun Verma</p>
-            <p className="text-xs text-olive-600 dark:text-olive-300">Free Plan</p>
-          </div>
-        </div>
+        <ProfileMenu user={user} placement="sidebar" />
       </div>
     </aside>
   )
 }
 
-function Header({ title, subtitle }: { title: string; subtitle: string }) {
+function Header({ title, subtitle, user }: { title: string; subtitle: string; user: DashboardUser }) {
   return (
     <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div>
@@ -165,7 +233,7 @@ function Header({ title, subtitle }: { title: string; subtitle: string }) {
           <kbd className="rounded bg-olive-950/5 px-2 py-1 text-xs text-olive-500 dark:bg-white/5 dark:text-olive-400">⌘K</kbd>
           <ThemeToggle />
           <BellIcon className="size-4 text-olive-950 dark:text-white" />
-          <Image src="/img/avatars/13-size-160.webp" alt="" width={32} height={32} className="size-8 rounded-full object-cover" />
+          <ProfileMenu user={user} />
         </div>
         <button className="flex h-9 w-fit items-center gap-2 rounded-md border border-olive-950/10 bg-white/60 px-3 text-sm text-olive-950 dark:border-white/10 dark:bg-white/[0.035] dark:text-white">
           <CalendarIcon className="size-4 text-olive-300" />
@@ -197,15 +265,15 @@ function ThemeToggle() {
   )
 }
 
-export function DashboardShell({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
+export function DashboardShell({ title, subtitle, user, children }: { title: string; subtitle: string; user: DashboardUser; children: ReactNode }) {
   return (
     <main className="min-h-dvh bg-olive-100 text-olive-950 dark:bg-olive-950 dark:text-white">
       <div className="absolute inset-0 -z-0 bg-[radial-gradient(circle_at_top_left,rgba(15,23,10,0.06),transparent_32rem)] dark:bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.06),transparent_32rem)]" />
       <div className="relative z-10 flex min-h-dvh">
-        <Sidebar />
+        <Sidebar user={user} />
         <div className="min-w-0 flex-1">
           <div className="mx-auto max-w-[1560px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
-            <Header title={title} subtitle={subtitle} />
+            <Header title={title} subtitle={subtitle} user={user} />
             {children}
           </div>
         </div>

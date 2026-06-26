@@ -1,5 +1,5 @@
-import { DashboardSectionPage } from '@/components/dashboard/section-page'
+import { ProtectedDashboardSectionPage } from '@/components/dashboard/protected-section-page'
 
 export default function Page() {
-  return <DashboardSectionPage section="opportunities" />
+  return <ProtectedDashboardSectionPage section="opportunities" returnTo="/opportunities" />
 }

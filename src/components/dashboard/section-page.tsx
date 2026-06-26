@@ -1,6 +1,7 @@
 'use client'
 
 import { Card, colorClasses, DashboardShell, Sparkline } from '@/components/dashboard/shell'
+import type { DashboardUser } from '@/components/dashboard/shell'
 import { ArrowNarrowRightIcon } from '@/components/icons/arrow-narrow-right-icon'
 import { BanknotesIcon } from '@/components/icons/banknotes-icon'
 import { BriefcaseIcon } from '@/components/icons/briefcase-icon'
@@ -209,13 +210,13 @@ function MetricCard({ metric, color }: { metric: [string, string, string]; color
   )
 }
 
-export function DashboardSectionPage({ section }: { section: SectionKey }) {
+export function DashboardSectionPage({ section, user }: { section: SectionKey; user: DashboardUser }) {
   const data = sections[section]
   const Icon = data.icon
   const theme = colorClasses(data.color)
 
   return (
-    <DashboardShell title={data.title} subtitle={data.subtitle}>
+    <DashboardShell title={data.title} subtitle={data.subtitle} user={user}>
       <section className="mt-6 grid gap-4 md:grid-cols-3">
         {data.metrics.map((metric) => (
           <MetricCard key={metric[0]} metric={metric} color={data.color} />
