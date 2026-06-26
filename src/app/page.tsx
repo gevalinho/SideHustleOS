@@ -11,7 +11,7 @@ export default async function Page() {
   }
 
   const completedAccountSession = await requireCompletedOnboarding('/')
-  const dashboardData = getDashboardHomeData(completedAccountSession.user.id, completedAccountSession.user.plan)
+  const dashboardData = getDashboardHomeData(completedAccountSession.user.id)
 
   return <DashboardHomePage user={completedAccountSession.user} data={dashboardData} />
 }

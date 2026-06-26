@@ -35,8 +35,8 @@ export async function ProtectedDashboardSectionPage({ section, returnTo }: { sec
             : section === 'opportunities'
               ? getOpportunitiesSectionData(accountSession.user.id)
               : section === 'settings'
-                ? getSettingsSectionData(accountSession.user.id, accountSession.user.plan)
+                ? getSettingsSectionData(accountSession.user.id)
                 : undefined
 
-  return <DashboardSectionPage section={section} user={accountSession.user} sectionData={sectionData} menuData={getDashboardMenuData(accountSession.user.id, accountSession.user.plan)} />
+  return <DashboardSectionPage section={section} user={accountSession.user} sectionData={sectionData} menuData={getDashboardMenuData(accountSession.user.id)} />
 }

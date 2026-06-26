@@ -1,6 +1,7 @@
 import type { DashboardHomeData } from '@/components/dashboard/home-page'
 import type { DashboardMenuData } from '@/components/dashboard/shell'
 import { getAgentMetrics, getAgentPerformance, listAgents } from '@/lib/agents-store'
+import { getBillingStatus } from '@/lib/billing-store'
 import { getEarningsMetrics, listEarnings, listInvoices } from '@/lib/earnings-store'
 import { getHustleMetrics, getHustlePerformance, listHustles } from '@/lib/hustles-store'
 import { getOpportunityMetrics, listOpportunities } from '@/lib/opportunities-store'
@@ -56,14 +57,15 @@ function currentWeekRange() {
   return formatDateRange(start, end)
 }
 
-export function getDashboardMenuData(userId: string, plan: string): DashboardMenuData {
+export function getDashboardMenuData(userId: string): DashboardMenuData {
   const hustleMetrics = getHustleMetrics(userId)
   const agentMetrics = getAgentMetrics(userId)
   const earningsMetrics = getEarningsMetrics(userId)
   const opportunityMetrics = getOpportunityMetrics(userId)
   const settingsMetrics = getSettingsMetrics(userId)
   const taskMetrics = getTaskMetrics(userId)
-  const isFreePlan = plan === 'free'
+  const billingStatus = getBillingStatus(userId)
+  const isFreePlan = billingStatus.account.plan === 'free'
 
   return {
     dateRange: currentWeekRange(),
@@ -73,20 +75,20 @@ export function getDashboardMenuData(userId: string, plan: string): DashboardMen
       tasks: String(taskMetrics.pending),
       earnings: currency(earningsMetrics.collected),
       opportunities: String(opportunityMetrics.highConfidence),
-      settings: settingsMetrics.approvalMode,
+      settings: billingStatus.account.plan.replaceAll('_', ' '),
     },
     planPanel: {
-      title: isFreePlan ? 'Free Plan' : `${plan.replaceAll('_', ' ').replace(/^\w/, (letter) => letter.toUpperCase())} Plan`,
+      title: isFreePlan ? 'Free Plan' : `${billingStatus.plan.name} Plan`,
       description: isFreePlan
         ? `${agentMetrics.running} agents running under a ${settingsMetrics.dailyEmailCap}-email daily cap.`
-        : `${agentMetrics.running} agents running with ${settingsMetrics.maxConcurrentAgents} max concurrent agents.`,
+        : `${billingStatus.included.prospects} prospects and ${billingStatus.included.emails} emails available.`,
       actionLabel: isFreePlan ? 'View Plans' : 'Manage Plan',
       href: isFreePlan ? '/pricing' : '/settings',
     },
   }
 }
 
-export function getDashboardHomeData(userId: string, plan = 'free'): DashboardHomeData {
+export function getDashboardHomeData(userId: string): DashboardHomeData {
   const hustles = listHustles(userId)
   const metrics = getHustleMetrics(userId)
   const agents = listAgents(userId)
@@ -102,7 +104,7 @@ export function getDashboardHomeData(userId: string, plan = 'free'): DashboardHo
   const totalRevenue = Math.max(metrics.totalRevenue, 0)
 
   return {
-    menu: getDashboardMenuData(userId, plan),
+    menu: getDashboardMenuData(userId),
     stats: [
       {
         label: 'Total Revenue',
@@ -337,15 +339,16 @@ export function getOpportunitiesSectionData(userId: string) {
   }
 }
 
-export function getSettingsSectionData(userId: string, plan: string) {
+export function getSettingsSectionData(userId: string) {
   const settings = getUserSettings(userId)
   const metrics = getSettingsMetrics(userId)
+  const billingStatus = getBillingStatus(userId)
 
   return {
     metrics: [
       ['Approval mode', metrics.approvalMode, `${metrics.activeRuleCount} rules active`],
       ['Daily email cap', String(metrics.dailyEmailCap), `${metrics.maxConcurrentAgents} max agents`],
-      ['Plan', plan.replaceAll('_', ' '), `${currency(metrics.monthlyAdSpendCap)} ad cap`],
+      ['Plan', billingStatus.plan.name, `${currency(metrics.monthlyAdSpendCap)} ad cap`],
     ] as [string, string, string][],
     primary: `Approval mode: ${settings.approvalRules.mode}`,
     rows: [
@@ -356,6 +359,7 @@ export function getSettingsSectionData(userId: string, plan: string) {
         `${settings.approvalRules.activeRuleCount} active`,
       ],
       ['Daily email cap', 'Outbound safety limit', String(settings.agentLimits.dailyEmailCap), 'Emails per day'],
+      ['Billing credits', `${billingStatus.account.prospectCredits} prospects`, `${billingStatus.account.emailCredits} emails`, billingStatus.account.vipOnboarding ? 'VIP onboarding' : 'Standard onboarding'],
       ['Monthly ad spend cap', 'Paid acquisition limit', currency(settings.agentLimits.monthlyAdSpendCap), 'Monthly cap'],
       ['Concurrent agents', 'Automation concurrency', String(settings.agentLimits.maxConcurrentAgents), 'Running limit'],
     ] as [string, string, string, string][],
