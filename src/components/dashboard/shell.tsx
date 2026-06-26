@@ -329,18 +329,22 @@ function Header({ title, subtitle, user, menuData }: { title: string; subtitle: 
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:flex-col lg:items-end">
-        <div className="flex h-10 w-full items-center gap-3 rounded-lg border border-olive-950/10 bg-white/70 px-3 text-sm text-olive-600 transition-[width,border-color,box-shadow,background-color] duration-200 focus-within:border-olive-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-olive-600/15 dark:border-white/10 dark:bg-black/20 dark:text-olive-300 dark:focus-within:border-olive-300 dark:focus-within:bg-black/30 dark:focus-within:ring-olive-300/15 sm:w-80 sm:focus-within:w-[28rem] lg:focus-within:w-[32rem]">
-          <MagnifyingGlassIcon className="size-4 shrink-0" />
-          <input
-            type="search"
-            aria-label="Search workspace"
-            placeholder="Search workspace"
-            className="min-w-0 flex-1 cursor-text bg-transparent text-sm text-olive-950 outline-none placeholder:text-olive-500 dark:text-white dark:placeholder:text-olive-400"
-          />
-          <kbd className="rounded bg-olive-950/5 px-2 py-1 text-xs text-olive-500 dark:bg-white/5 dark:text-olive-400">⌘K</kbd>
+        <div className="flex w-full items-center gap-2 rounded-lg border border-olive-950/10 bg-white/70 p-1 text-sm text-olive-600 dark:border-white/10 dark:bg-black/20 dark:text-olive-300 sm:w-auto">
+          <div className="flex h-8 min-w-0 flex-1 items-center gap-3 rounded-md px-2 transition-[width,border-color,box-shadow,background-color] duration-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-olive-600/15 dark:focus-within:bg-black/30 dark:focus-within:ring-olive-300/15 sm:w-56 sm:focus-within:w-80 lg:focus-within:w-96">
+            <MagnifyingGlassIcon className="size-4 shrink-0" />
+            <input
+              type="search"
+              aria-label="Search workspace"
+              placeholder="Search workspace"
+              className="min-w-0 flex-1 cursor-text bg-transparent text-sm text-olive-950 outline-none placeholder:text-olive-500 dark:text-white dark:placeholder:text-olive-400"
+            />
+            <kbd className="rounded bg-olive-950/5 px-2 py-1 text-xs text-olive-500 dark:bg-white/5 dark:text-olive-400">⌘K</kbd>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
           <ThemeToggle />
           <NotificationMenu menuData={menuData} />
           <ProfileMenu user={user} />
+          </div>
         </div>
         <button className="flex h-9 w-fit items-center gap-2 rounded-md border border-olive-950/10 bg-white/60 px-3 text-sm text-olive-950 dark:border-white/10 dark:bg-white/[0.035] dark:text-white">
           <CalendarIcon className="size-4 text-olive-300" />
