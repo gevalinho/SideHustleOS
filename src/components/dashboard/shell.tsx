@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { ComponentType, ReactNode, SVGProps } from 'react'
 
+import { markAllNotificationsReadAction, markNotificationReadAction } from '@/app/notifications/actions'
 import { ArrowNarrowRightIcon } from '@/components/icons/arrow-narrow-right-icon'
 import { BanknotesIcon } from '@/components/icons/banknotes-icon'
 import { BellIcon } from '@/components/icons/bell-icon'
@@ -36,6 +37,15 @@ type NavKey = 'dashboard' | 'hustles' | 'agents' | 'tasks' | 'clients' | 'earnin
 export type DashboardMenuData = {
   dateRange: string
   unreadNotifications: number
+  notifications: {
+    id: string
+    title: string
+    body: string
+    href: string
+    type: string
+    readAt: string | null
+    createdAt: string
+  }[]
   navBadges: Partial<Record<NavKey, string>>
   planPanel: {
     title: string
@@ -170,6 +180,72 @@ function ProfileMenu({ user, placement = 'header' }: { user: DashboardUser; plac
   )
 }
 
+function formatNotificationTime(value: string) {
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(value))
+}
+
+function NotificationMenu({ menuData }: { menuData?: DashboardMenuData }) {
+  const notifications = menuData?.notifications ?? []
+  const unreadCount = menuData?.unreadNotifications ?? 0
+
+  return (
+    <details className="group relative">
+      <summary
+        aria-label="Open notifications"
+        className="relative grid size-8 shrink-0 cursor-pointer list-none place-items-center rounded-md border border-olive-950/10 bg-olive-950/[0.04] text-olive-950 transition hover:bg-olive-950/[0.08] dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:bg-white/[0.08] [&::-webkit-details-marker]:hidden"
+      >
+        <BellIcon className="size-4" />
+        {unreadCount ? (
+          <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-olive-950 px-1 text-center text-[10px] font-semibold leading-4 text-white ring-2 ring-white dark:bg-olive-300 dark:text-olive-950 dark:ring-olive-950">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        ) : null}
+      </summary>
+
+      <div className="absolute right-0 top-full z-30 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-olive-950/10 bg-white shadow-xl shadow-olive-950/10 ring-1 ring-white/70 dark:border-white/10 dark:bg-olive-900 dark:shadow-black/30 dark:ring-white/10">
+        <div className="flex items-center justify-between gap-3 border-b border-olive-950/10 p-3 dark:border-white/10">
+          <div>
+            <p className="text-sm font-semibold text-olive-950 dark:text-white">Notifications</p>
+            <p className="mt-0.5 text-xs text-olive-600 dark:text-olive-300">{unreadCount} unread</p>
+          </div>
+          <form action={markAllNotificationsReadAction}>
+            <button type="submit" disabled={!unreadCount} className="h-8 rounded-md border border-olive-950/10 px-2 text-xs font-medium text-olive-800 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-olive-200">
+              Mark all read
+            </button>
+          </form>
+        </div>
+
+        <div className="max-h-96 overflow-y-auto">
+          {notifications.length ? (
+            notifications.map((notification) => (
+              <div key={notification.id} className="border-b border-olive-950/10 p-3 last:border-b-0 dark:border-white/10">
+                <div className="flex items-start gap-3">
+                  <span className={`mt-1 size-2 shrink-0 rounded-full ${notification.readAt ? 'bg-olive-300/60 dark:bg-olive-600' : 'bg-olive-950 dark:bg-olive-300'}`} />
+                  <Link href={notification.href} className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-olive-950 dark:text-white">{notification.title}</span>
+                    <span className="mt-1 line-clamp-2 block text-xs leading-5 text-olive-700 dark:text-olive-300">{notification.body}</span>
+                    <span className="mt-2 block text-xs text-olive-500 dark:text-olive-400">{formatNotificationTime(notification.createdAt)}</span>
+                  </Link>
+                </div>
+                {!notification.readAt ? (
+                  <form action={markNotificationReadAction} className="mt-2 pl-5">
+                    <input type="hidden" name="notificationId" value={notification.id} />
+                    <button type="submit" className="text-xs font-medium text-olive-800 hover:text-olive-950 dark:text-olive-200 dark:hover:text-white">
+                      Mark as read
+                    </button>
+                  </form>
+                ) : null}
+              </div>
+            ))
+          ) : (
+            <div className="p-4 text-sm text-olive-700 dark:text-olive-300">No notifications yet.</div>
+          )}
+        </div>
+      </div>
+    </details>
+  )
+}
+
 function Sidebar({ user, menuData }: { user: DashboardUser; menuData?: DashboardMenuData }) {
   const pathname = usePathname()
 
@@ -263,14 +339,7 @@ function Header({ title, subtitle, user, menuData }: { title: string; subtitle: 
           />
           <kbd className="rounded bg-olive-950/5 px-2 py-1 text-xs text-olive-500 dark:bg-white/5 dark:text-olive-400">⌘K</kbd>
           <ThemeToggle />
-          <span className="relative grid size-8 shrink-0 place-items-center rounded-md border border-olive-950/10 bg-olive-950/[0.04] text-olive-950 dark:border-white/10 dark:bg-white/[0.04] dark:text-white">
-            <BellIcon className="size-4" />
-            {menuData?.unreadNotifications ? (
-              <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-olive-950 px-1 text-center text-[10px] font-semibold leading-4 text-white ring-2 ring-white dark:bg-olive-300 dark:text-olive-950 dark:ring-olive-950">
-                {menuData.unreadNotifications > 9 ? '9+' : menuData.unreadNotifications}
-              </span>
-            ) : null}
-          </span>
+          <NotificationMenu menuData={menuData} />
           <ProfileMenu user={user} />
         </div>
         <button className="flex h-9 w-fit items-center gap-2 rounded-md border border-olive-950/10 bg-white/60 px-3 text-sm text-olive-950 dark:border-white/10 dark:bg-white/[0.035] dark:text-white">

@@ -7,7 +7,7 @@ import { getClientMetrics, listClients } from '@/lib/clients-store'
 import { getEarningsMetrics, listEarnings, listInvoices } from '@/lib/earnings-store'
 import { getHustleMetrics, getHustlePerformance, listHustles } from '@/lib/hustles-store'
 import { getOpportunityMetrics, listOpportunities } from '@/lib/opportunities-store'
-import { getUnreadNotificationCount } from '@/lib/notifications-store'
+import { getUnreadNotificationCount, listNotifications } from '@/lib/notifications-store'
 import { getSettingsMetrics, getUserSettings } from '@/lib/settings-store'
 import { getTaskMetrics, listTasks } from '@/lib/tasks-store'
 
@@ -73,7 +73,16 @@ export function getDashboardMenuData(userId: string): DashboardMenuData {
 
   return {
     dateRange: currentWeekRange(),
-    unreadNotifications: getUnreadNotificationCount(userId),
+  unreadNotifications: getUnreadNotificationCount(userId),
+    notifications: listNotifications(userId).slice(0, 5).map((notification) => ({
+      id: notification.id,
+      title: notification.title,
+      body: notification.body,
+      href: notification.href,
+      type: notification.type,
+      readAt: notification.readAt,
+      createdAt: notification.createdAt,
+    })),
     navBadges: {
       hustles: String(hustleMetrics.active),
       agents: String(agentMetrics.running),
