@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { ComponentType, HTMLAttributes, ReactNode, SVGProps } from 'react'
 
-import { createAdminBroadcast, overrideAdminDispute, updateAdminUserPlan, updateAdminUserStatus } from '@/app/admin/actions'
+import { createAdminBroadcast, impersonateAdminUser, overrideAdminDispute, updateAdminUserPlan, updateAdminUserStatus } from '@/app/admin/actions'
 import type { DashboardUser } from '@/components/dashboard/shell'
 import { BanknotesIcon } from '@/components/icons/banknotes-icon'
 import { BellIcon } from '@/components/icons/bell-icon'
@@ -241,6 +241,7 @@ function PaginationControls({
 function AdminUserControls({ item, currentUserId }: { item: AdminDashboardData['users']['items'][number]; currentUserId: string }) {
   const isAdminAccount = item.role === 'admin'
   const statusDisabled = isAdminAccount && item.id === currentUserId
+  const canImpersonate = !isAdminAccount && item.id !== currentUserId
 
   return (
     <div className="grid min-w-[360px] gap-2 lg:min-w-[420px]">
@@ -298,6 +299,19 @@ function AdminUserControls({ item, currentUserId }: { item: AdminDashboardData['
           className="h-9 rounded-md border border-olive-950/10 bg-white/70 px-3 text-xs font-semibold text-olive-800 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.06] dark:text-olive-200"
         >
           Save status
+        </button>
+      </form>
+      <form action={impersonateAdminUser} className="flex items-center justify-between gap-3 rounded-md border border-olive-950/10 bg-white/50 p-2 dark:border-white/10 dark:bg-white/[0.035]">
+        <input type="hidden" name="userId" value={item.id} />
+        <span className="truncate text-xs text-olive-700 dark:text-olive-300">
+          {canImpersonate ? 'Open user workspace' : 'Impersonation unavailable'}
+        </span>
+        <button
+          type="submit"
+          disabled={!canImpersonate}
+          className="h-8 rounded-md border border-olive-950/10 px-3 text-xs font-semibold text-olive-800 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:text-olive-200"
+        >
+          Impersonate
         </button>
       </form>
       {statusDisabled ? <p className="text-xs text-olive-600 dark:text-olive-400">Your active admin account is protected from self-moderation.</p> : null}

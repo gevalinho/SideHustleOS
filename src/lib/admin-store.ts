@@ -175,16 +175,23 @@ export function setUserPlan(userId: string, plan: PublicUser['plan']) {
 }
 
 export function impersonateUser(adminUserId: string, userId: string, request: Request) {
+  return createAdminImpersonationSession(adminUserId, userId, {
+    userAgent: `Admin impersonation by ${adminUserId}: ${request.headers.get('user-agent') ?? 'Postman'}`,
+    ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1',
+  })
+}
+
+export function createAdminImpersonationSession(adminUserId: string, userId: string, input: { userAgent: string; ipAddress: string }) {
   const user = authStore.users.get(userId)
 
-  if (!user) {
+  if (!user || user.role === 'admin' || user.id === adminUserId) {
     return null
   }
 
   const session = createSession({
     userId,
-    userAgent: `Admin impersonation by ${adminUserId}: ${request.headers.get('user-agent') ?? 'Postman'}`,
-    ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1',
+    userAgent: input.userAgent,
+    ipAddress: input.ipAddress,
   })
 
   return {

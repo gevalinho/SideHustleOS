@@ -1,9 +1,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
+import { temporaryAccountSessionCookieName } from '@/lib/account-session'
 import { requireAdminSession } from '@/lib/admin-session'
-import { createBroadcast, overrideDispute, setAdminUserStatus, setUserPlan } from '@/lib/admin-store'
+import { createAdminImpersonationSession, createBroadcast, overrideDispute, setAdminUserStatus, setUserPlan } from '@/lib/admin-store'
 import type { AdminDispute, AdminUserStatus } from '@/lib/admin-store'
 import type { PublicUser } from '@/lib/auth-store'
 
@@ -80,4 +83,35 @@ export async function overrideAdminDispute(formData: FormData) {
     adminReason,
   })
   revalidatePath('/admin')
+}
+
+export async function impersonateAdminUser(formData: FormData) {
+  const accountSession = await requireAdminSession('/admin')
+  const userId = formString(formData, 'userId')
+
+  if (!userId) {
+    return
+  }
+
+  const payload = createAdminImpersonationSession(accountSession.user.id, userId, {
+    userAgent: `Admin dashboard impersonation by ${accountSession.user.email}`,
+    ipAddress: '127.0.0.1',
+  })
+
+  if (!payload) {
+    return
+  }
+
+  const cookieStore = await cookies()
+
+  cookieStore.set({
+    name: temporaryAccountSessionCookieName,
+    value: payload.accessToken,
+    httpOnly: true,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 30,
+  })
+
+  redirect('/')
 }
