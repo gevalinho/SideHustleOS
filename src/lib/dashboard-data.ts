@@ -4,6 +4,7 @@ import { getAgentMetrics, getAgentPerformance, listAgents } from '@/lib/agents-s
 import { getEarningsMetrics, listEarnings, listInvoices } from '@/lib/earnings-store'
 import { getHustleMetrics, getHustlePerformance, listHustles } from '@/lib/hustles-store'
 import { getOpportunityMetrics, listOpportunities } from '@/lib/opportunities-store'
+import { getSettingsMetrics, getUserSettings } from '@/lib/settings-store'
 import { getTaskMetrics, listTasks } from '@/lib/tasks-store'
 
 function currency(value: number) {
@@ -60,6 +61,7 @@ export function getDashboardMenuData(userId: string, plan: string): DashboardMen
   const agentMetrics = getAgentMetrics(userId)
   const earningsMetrics = getEarningsMetrics(userId)
   const opportunityMetrics = getOpportunityMetrics(userId)
+  const settingsMetrics = getSettingsMetrics(userId)
   const taskMetrics = getTaskMetrics(userId)
   const isFreePlan = plan === 'free'
 
@@ -71,13 +73,13 @@ export function getDashboardMenuData(userId: string, plan: string): DashboardMen
       tasks: String(taskMetrics.pending),
       earnings: currency(earningsMetrics.collected),
       opportunities: String(opportunityMetrics.highConfidence),
-      settings: plan.replaceAll('_', ' '),
+      settings: settingsMetrics.approvalMode,
     },
     planPanel: {
       title: isFreePlan ? 'Free Plan' : `${plan.replaceAll('_', ' ').replace(/^\w/, (letter) => letter.toUpperCase())} Plan`,
       description: isFreePlan
-        ? `${agentMetrics.running} agents running. Upgrade when you need higher outreach volume.`
-        : `${agentMetrics.running} agents running with ${agentMetrics.approvalsPending} approval${agentMetrics.approvalsPending === 1 ? '' : 's'} pending.`,
+        ? `${agentMetrics.running} agents running under a ${settingsMetrics.dailyEmailCap}-email daily cap.`
+        : `${agentMetrics.running} agents running with ${settingsMetrics.maxConcurrentAgents} max concurrent agents.`,
       actionLabel: isFreePlan ? 'View Plans' : 'Manage Plan',
       href: isFreePlan ? '/pricing' : '/settings',
     },
@@ -332,5 +334,30 @@ export function getOpportunitiesSectionData(userId: string) {
           opportunity.status === 'pursued' ? 'Pursued' : opportunity.confidence === 'high' ? 'High confidence' : `${opportunity.confidence} confidence`,
         ] as [string, string, string, string],
     ),
+  }
+}
+
+export function getSettingsSectionData(userId: string, plan: string) {
+  const settings = getUserSettings(userId)
+  const metrics = getSettingsMetrics(userId)
+
+  return {
+    metrics: [
+      ['Approval mode', metrics.approvalMode, `${metrics.activeRuleCount} rules active`],
+      ['Daily email cap', String(metrics.dailyEmailCap), `${metrics.maxConcurrentAgents} max agents`],
+      ['Plan', plan.replaceAll('_', ' '), `${currency(metrics.monthlyAdSpendCap)} ad cap`],
+    ] as [string, string, string][],
+    primary: `Approval mode: ${settings.approvalRules.mode}`,
+    rows: [
+      [
+        'Approval rules',
+        settings.approvalRules.requireApprovalFor.join(', ') || 'None',
+        settings.approvalRules.mode,
+        `${settings.approvalRules.activeRuleCount} active`,
+      ],
+      ['Daily email cap', 'Outbound safety limit', String(settings.agentLimits.dailyEmailCap), 'Emails per day'],
+      ['Monthly ad spend cap', 'Paid acquisition limit', currency(settings.agentLimits.monthlyAdSpendCap), 'Monthly cap'],
+      ['Concurrent agents', 'Automation concurrency', String(settings.agentLimits.maxConcurrentAgents), 'Running limit'],
+    ] as [string, string, string, string][],
   }
 }

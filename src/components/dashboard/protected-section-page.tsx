@@ -5,6 +5,7 @@ import {
   getEarningsSectionData,
   getHustlesSectionData,
   getOpportunitiesSectionData,
+  getSettingsSectionData,
   getTasksSectionData,
 } from '@/lib/dashboard-data'
 import { requireCompletedOnboarding } from '@/lib/session'
@@ -33,7 +34,9 @@ export async function ProtectedDashboardSectionPage({ section, returnTo }: { sec
             ? getTasksSectionData(accountSession.user.id)
             : section === 'opportunities'
               ? getOpportunitiesSectionData(accountSession.user.id)
-              : undefined
+              : section === 'settings'
+                ? getSettingsSectionData(accountSession.user.id, accountSession.user.plan)
+                : undefined
 
   return <DashboardSectionPage section={section} user={accountSession.user} sectionData={sectionData} menuData={getDashboardMenuData(accountSession.user.id, accountSession.user.plan)} />
 }
