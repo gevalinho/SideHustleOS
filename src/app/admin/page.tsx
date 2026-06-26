@@ -24,6 +24,14 @@ function pageNumber(value: string | undefined) {
   return Number.isFinite(parsed) ? Math.max(Math.floor(parsed), 1) : 1
 }
 
+function cleanSearch(value: string | undefined) {
+  return value?.trim() || undefined
+}
+
+function cleanPlan(value: string | undefined) {
+  return ['free', 'starter', 'pro', 'revenue_share'].includes(value ?? '') ? value : undefined
+}
+
 function paginateItems<T>(items: T[], page: number, limit: number) {
   const totalPages = Math.max(Math.ceil(items.length / limit), 1)
   const currentPage = Math.min(Math.max(page, 1), totalPages)
@@ -49,6 +57,8 @@ export default async function AdminPage({
     logsPage?: string
     disputesPage?: string
     broadcastsPage?: string
+    userSearch?: string
+    userPlan?: string
   }>
 }) {
   const accountSession = await requireAdminSession('/admin')
@@ -57,6 +67,8 @@ export default async function AdminPage({
   const agentLogs = listAdminAgentLogs({ limit: 200 })
   const disputes = listOpenDisputes()
   const broadcasts = [...adminStore.broadcasts.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const userSearch = cleanSearch(params.userSearch)
+  const userPlan = cleanPlan(params.userPlan)
 
   return (
     <AdminDashboardPage
@@ -66,7 +78,7 @@ export default async function AdminPage({
       data={{
         stats: getPlatformStats(),
         health: getSystemHealth(),
-        users: listAdminUsers({ page: pageNumber(params.usersPage), limit: pageSizes.users }),
+        users: listAdminUsers({ page: pageNumber(params.usersPage), limit: pageSizes.users, search: userSearch, plan: userPlan }),
         runningAgents: paginateItems(runningAgents, pageNumber(params.agentsPage), pageSizes.runningAgents),
         agentLogs: paginateItems(agentLogs, pageNumber(params.logsPage), pageSizes.agentLogs),
         disputes: paginateItems(disputes, pageNumber(params.disputesPage), pageSizes.disputes),

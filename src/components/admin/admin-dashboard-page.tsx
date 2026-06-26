@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { ComponentType, HTMLAttributes, ReactNode, SVGProps } from 'react'
 
 import { createAdminBroadcast, impersonateAdminUser, overrideAdminDispute, updateAdminUserPlan, updateAdminUserStatus } from '@/app/admin/actions'
+import { AdminThemeToggle } from '@/components/admin/admin-theme-toggle'
 import type { DashboardUser } from '@/components/dashboard/shell'
 import { BanknotesIcon } from '@/components/icons/banknotes-icon'
 import { BellIcon } from '@/components/icons/bell-icon'
@@ -33,6 +34,8 @@ type AdminDashboardQuery = {
   logsPage?: string
   disputesPage?: string
   broadcastsPage?: string
+  userSearch?: string
+  userPlan?: string
 }
 
 type AdminDashboardData = {
@@ -238,14 +241,57 @@ function PaginationControls({
   )
 }
 
+function UserFilters({ query }: { query: AdminDashboardQuery }) {
+  return (
+    <form action="/admin#users" className="grid gap-3 border-b border-olive-950/10 p-4 dark:border-white/10 sm:grid-cols-[1fr_180px_auto_auto] sm:items-end sm:p-5">
+      {Object.entries(query).map(([key, value]) => {
+        if (!value || key === 'usersPage' || key === 'userSearch' || key === 'userPlan') {
+          return null
+        }
+
+        return <input key={key} type="hidden" name={key} value={value} />
+      })}
+      <label className="block">
+        <span className="text-xs font-medium uppercase tracking-wide text-olive-600 dark:text-olive-400">Search users</span>
+        <input
+          name="userSearch"
+          defaultValue={query.userSearch ?? ''}
+          placeholder="Name or email"
+          className="mt-2 h-10 w-full rounded-md border border-olive-950/10 bg-white px-3 text-sm text-olive-950 outline-none placeholder:text-olive-400 focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-white/10 dark:bg-white/10 dark:text-white dark:placeholder:text-olive-500"
+        />
+      </label>
+      <label className="block">
+        <span className="text-xs font-medium uppercase tracking-wide text-olive-600 dark:text-olive-400">Plan</span>
+        <select
+          name="userPlan"
+          defaultValue={query.userPlan ?? ''}
+          className="mt-2 h-10 w-full rounded-md border border-olive-950/10 bg-white px-3 text-sm text-olive-950 outline-none focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-white/10 dark:bg-white/10 dark:text-white"
+        >
+          <option value="">All plans</option>
+          <option value="free">Free</option>
+          <option value="starter">Starter</option>
+          <option value="pro">Pro</option>
+          <option value="revenue_share">Revenue share</option>
+        </select>
+      </label>
+      <button type="submit" className="h-10 rounded-md bg-olive-950 px-4 text-sm font-semibold text-white dark:bg-olive-300 dark:text-olive-950">
+        Apply
+      </button>
+      <Link href="/admin#users" className="inline-flex h-10 items-center justify-center rounded-md border border-olive-950/10 bg-white/70 px-4 text-sm font-semibold text-olive-800 dark:border-white/10 dark:bg-white/[0.06] dark:text-olive-200">
+        Reset
+      </Link>
+    </form>
+  )
+}
+
 function AdminUserControls({ item, currentUserId }: { item: AdminDashboardData['users']['items'][number]; currentUserId: string }) {
   const isAdminAccount = item.role === 'admin'
   const statusDisabled = isAdminAccount && item.id === currentUserId
   const canImpersonate = !isAdminAccount && item.id !== currentUserId
 
   return (
-    <div className="grid min-w-[360px] gap-2 lg:min-w-[420px]">
-      <form action={updateAdminUserPlan} className="flex items-center gap-2">
+    <div className="grid min-w-[280px] gap-2 sm:min-w-[340px] lg:min-w-[400px]">
+      <form action={updateAdminUserPlan} className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
         <input type="hidden" name="userId" value={item.id} />
         <label className="sr-only" htmlFor={`plan-${item.id}`}>
           Change plan for {item.email}
@@ -254,7 +300,7 @@ function AdminUserControls({ item, currentUserId }: { item: AdminDashboardData['
           id={`plan-${item.id}`}
           name="plan"
           defaultValue={item.plan}
-          className="h-9 min-w-32 rounded-md border border-olive-950/10 bg-white px-2 text-xs font-medium text-olive-800 outline-none focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-white/10 dark:bg-white/10 dark:text-olive-100"
+          className="h-9 min-w-0 rounded-md border border-olive-950/10 bg-white px-2 text-xs font-medium text-olive-800 outline-none focus:border-olive-600 focus:ring-2 focus:ring-olive-600/20 dark:border-white/10 dark:bg-white/10 dark:text-olive-100"
         >
           <option value="free">Free</option>
           <option value="starter">Starter</option>
@@ -484,6 +530,42 @@ function Sidebar({ user }: { user: DashboardUser }) {
   )
 }
 
+function MobileAdminNav({ user }: { user: DashboardUser }) {
+  return (
+    <div className="sticky top-0 z-20 border-b border-olive-950/10 bg-olive-100/95 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-olive-950/95 lg:hidden">
+      <div className="flex items-center justify-between gap-3">
+        <Link href="/admin" className="flex min-w-0 items-center gap-3">
+          <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-olive-950 text-white dark:bg-olive-300 dark:text-olive-950">
+            <ShieldExclamationIcon className="size-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-olive-950 dark:text-white">Admin Control Plane</p>
+            <p className="truncate text-xs text-olive-700 dark:text-olive-300">{user.email}</p>
+          </div>
+        </Link>
+        <div className="flex shrink-0 items-center gap-2">
+          <AdminThemeToggle />
+          <Link href="/logout" className="grid size-10 place-items-center rounded-md border border-olive-950/10 bg-white/70 text-olive-800 dark:border-white/10 dark:bg-white/[0.06] dark:text-olive-200" aria-label="Log out" title="Log out">
+            <LockOpenIcon className="size-4" />
+          </Link>
+        </div>
+      </div>
+      <nav className="mt-3 flex gap-2 overflow-x-auto pb-1">
+        {navItems.map((item) => {
+          const Icon = item.icon
+
+          return (
+            <a key={item.href} href={item.href} className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-olive-950/10 bg-white/70 px-3 text-sm font-medium text-olive-800 dark:border-white/10 dark:bg-white/[0.06] dark:text-olive-200">
+              <Icon className="size-4" />
+              {item.label}
+            </a>
+          )
+        })}
+      </nav>
+    </div>
+  )
+}
+
 export function AdminDashboardPage({
   user,
   currentUserId,
@@ -500,28 +582,32 @@ export function AdminDashboardPage({
 
   return (
     <main className="min-h-dvh bg-olive-100 text-olive-950 dark:bg-olive-950 dark:text-white">
+      <MobileAdminNav user={user} />
       <div className="flex min-h-dvh">
         <Sidebar user={user} />
         <div className="min-w-0 flex-1">
-          <div className="mx-auto max-w-[1600px] px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
-            <header className="flex flex-col gap-4 border-b border-olive-950/10 pb-5 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
-              <div>
+          <div className="mx-auto max-w-[1600px] px-3 py-4 sm:px-6 lg:px-8 lg:py-6">
+            <header className="flex flex-col gap-4 border-b border-olive-950/10 pb-5 dark:border-white/10 xl:flex-row xl:items-center xl:justify-between">
+              <div className="min-w-0">
                 <div className="flex items-center gap-2 text-sm text-olive-700 dark:text-olive-300">
                   <ShieldExclamationIcon className="size-4" />
                   <span>Admin</span>
                   <span>/</span>
                   <span>Platform</span>
                 </div>
-                <h1 className="mt-2 text-2xl font-semibold tracking-normal text-olive-950 dark:text-white">Platform Operations</h1>
-                <p className="mt-1 text-sm text-olive-700 dark:text-olive-300">Users, agents, revenue, disputes, broadcasts, and system health in one control view.</p>
+                <h1 className="mt-2 text-xl font-semibold tracking-normal text-olive-950 dark:text-white sm:text-2xl">Platform Operations</h1>
+                <p className="mt-1 max-w-3xl text-sm text-olive-700 dark:text-olive-300">Users, agents, revenue, disputes, broadcasts, and system health in one control view.</p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <StatusPill tone={statusTone(data.health.status)}>System {data.health.status}</StatusPill>
-                <Link href="/" className="rounded-md border border-olive-950/10 bg-white/70 px-3 py-2 text-sm font-medium text-olive-800 dark:border-white/10 dark:bg-white/[0.06] dark:text-olive-200">
+                <div className="hidden lg:block">
+                  <AdminThemeToggle />
+                </div>
+                <Link href="/" className="inline-flex h-10 items-center rounded-md border border-olive-950/10 bg-white/70 px-3 text-sm font-medium text-olive-800 dark:border-white/10 dark:bg-white/[0.06] dark:text-olive-200">
                   User workspace
                 </Link>
-                <Link href="/api/v1/admin/health" className="rounded-md bg-olive-950 px-3 py-2 text-sm font-medium text-white dark:bg-olive-300 dark:text-olive-950">
+                <Link href="/api/v1/admin/health" className="inline-flex h-10 items-center rounded-md bg-olive-950 px-3 text-sm font-medium text-white dark:bg-olive-300 dark:text-olive-950">
                   Health JSON
                 </Link>
               </div>
@@ -561,9 +647,10 @@ export function AdminDashboardPage({
               <AdminCard id="users" className="overflow-hidden">
                 <SectionHeader
                   title="User Operations"
-                  detail="Recent accounts, plans, roles, and moderation status."
+                  detail="Search accounts, filter plans, and manage status or access."
                   action={<StatusPill tone={data.stats.users.suspended ? 'warning' : 'good'}>{data.stats.users.suspended} suspended</StatusPill>}
                 />
+                <UserFilters query={query} />
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-left text-sm">
                     <thead className="border-b border-olive-950/10 text-xs uppercase tracking-wide text-olive-600 dark:border-white/10 dark:text-olive-400">
@@ -600,7 +687,7 @@ export function AdminDashboardPage({
                       {!data.users.items.length ? (
                         <tr>
                           <td colSpan={6} className="px-4 py-5 text-sm text-olive-700 dark:text-olive-300 sm:px-5">
-                            No users match the current admin view.
+                            No users match the current filters.
                           </td>
                         </tr>
                       ) : null}
