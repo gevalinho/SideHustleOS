@@ -1,6 +1,7 @@
 import type { DashboardHomeData } from '@/components/dashboard/home-page'
 import type { DashboardMenuData } from '@/components/dashboard/shell'
 import { getAgentMetrics, getAgentPerformance, listAgents } from '@/lib/agents-store'
+import { getAgentAnalytics, getAnalyticsSummary, getOutreachAnalytics, getRevenueAnalytics } from '@/lib/analytics-store'
 import { getBillingStatus } from '@/lib/billing-store'
 import { getEarningsMetrics, listEarnings, listInvoices } from '@/lib/earnings-store'
 import { getHustleMetrics, getHustlePerformance, listHustles } from '@/lib/hustles-store'
@@ -363,5 +364,43 @@ export function getSettingsSectionData(userId: string) {
       ['Monthly ad spend cap', 'Paid acquisition limit', currency(settings.agentLimits.monthlyAdSpendCap), 'Monthly cap'],
       ['Concurrent agents', 'Automation concurrency', String(settings.agentLimits.maxConcurrentAgents), 'Running limit'],
     ] as [string, string, string, string][],
+  }
+}
+
+export function getAnalyticsSectionData(userId: string) {
+  const summary = getAnalyticsSummary(userId)
+  const revenue = getRevenueAnalytics(userId, { days: 30, granularity: 'day' })
+  const outreach = getOutreachAnalytics(userId)
+  const agents = getAgentAnalytics(userId)
+  const bestAgent = [...agents.items].sort((a, b) => b.successRate - a.successRate)[0] ?? null
+  const latestRevenue = revenue.series[revenue.series.length - 1]?.revenue ?? 0
+
+  return {
+    metrics: [
+      ['Revenue growth', `${percent(summary.revenue.growthPercent)}`, currency(latestRevenue)],
+      ['Reply rate', `${outreach.replyRate}%`, `${outreach.stages[1]?.count ?? 0} contacted`],
+      ['Best agent', bestAgent?.name ?? 'No agents yet', bestAgent ? `${Math.round(bestAgent.successRate * 100)}% success` : 'No runs yet'],
+    ] as [string, string, string][],
+    primary: bestAgent ? `${bestAgent.name} performance` : 'No analytics yet',
+    rows: [
+      ...outreach.stages.map(
+        (stage) =>
+          [
+            stage.name,
+            `${stage.conversionRate}% conversion`,
+            String(stage.count),
+            'Outreach funnel',
+          ] as [string, string, string, string],
+      ),
+      ...agents.items.slice(0, 3).map(
+        (agent) =>
+          [
+            agent.name,
+            `${agent.status} ${agent.type}`,
+            `${agent.runsToday} runs`,
+            `${Math.round(agent.successRate * 100)}% success`,
+          ] as [string, string, string, string],
+      ),
+    ],
   }
 }
